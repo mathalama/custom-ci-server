@@ -7,8 +7,14 @@
         <p class="page-subtitle">{{ project.repoUrl }}</p>
       </div>
       <div style="display: flex; gap: 8px">
-        <button class="btn btn-primary" @click="showTriggerModal = true">🚀 Запустить билд</button>
-        <button class="btn btn-danger" @click="handleDelete">🗑️ Удалить</button>
+        <button class="btn btn-primary" @click="showTriggerModal = true">
+          <Icon name="play" :size="14" />
+          Запустить билд
+        </button>
+        <button class="btn btn-danger" @click="handleDelete">
+          <Icon name="trash" :size="14" />
+          Удалить
+        </button>
       </div>
     </div>
 
@@ -30,7 +36,9 @@
     <!-- Builds -->
     <h2 class="card-title">История билдов</h2>
     <div v-if="builds.length === 0" class="empty-state">
-      <div class="empty-state-icon">🔨</div>
+      <div class="empty-state-icon">
+        <Icon name="hammer" :size="40" />
+      </div>
       <div class="empty-state-text">Нет билдов. Запустите первый!</div>
     </div>
     <div v-else class="builds-list">
@@ -64,6 +72,7 @@ import { useRouter } from 'vue-router'
 import { getProject, getBuilds, triggerBuild, deleteProject } from '@/api/client'
 import type { ProjectResponse, BuildResponse } from '@/types'
 import BuildCard from '@/components/BuildCard.vue'
+import Icon from '@/components/Icon.vue'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -129,10 +138,11 @@ const handleDelete = async () => {
 code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-  background: var(--surface);
+  background: var(--surface-elevated);
   padding: 2px 6px;
   border-radius: 4px;
-  color: var(--accent);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
 }
 
 .builds-list {
@@ -144,7 +154,7 @@ code {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,5 +163,6 @@ code {
 
 .modal {
   width: 400px;
+  box-shadow: var(--shadow-md);
 }
 </style>

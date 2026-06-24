@@ -20,6 +20,7 @@ import dev.mathalama.rabotyagaci.common.exception.ResourceNotFoundException;
 import dev.mathalama.rabotyagaci.pipeline.api.PipelineService;
 import dev.mathalama.rabotyagaci.pipeline.api.dto.PipelineDefinition;
 import dev.mathalama.rabotyagaci.pipeline.api.dto.StepDefinition;
+import dev.mathalama.rabotyagaci.pipeline.service.impl.GitCloneService;
 import dev.mathalama.rabotyagaci.project.domain.Project;
 import dev.mathalama.rabotyagaci.project.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,7 @@ public class BuildServiceImpl implements BuildService {
     private final BuildStepRepository buildStepRepository;
     private final ProjectRepository projectRepository;
     private final PipelineService pipelineService;
+    private final GitCloneService gitCloneService;
     private final BuildMapper buildMapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -112,6 +114,17 @@ public class BuildServiceImpl implements BuildService {
                     build.getCommitSha(),
                     build.getProject().getPipelineConfigPath()
             );
+
+            Path workspaceDir = Path.of(workspaceDirParent).resolve("build-" + build.getId());
+            log.info("Preparing workspace and cloning code into: {}", workspaceDir);
+
+            gitCloneService.cloneOrPull(build.getProject().getRepoUrl(), workspaceDir);
+
+            String ref = (build.getCommitSha() != null && !build.getCommitSha().isBlank())
+                    ? build.getCommitSha()
+                    : build.getBranch();
+
+            gitCloneService.checkoutCommit(workspaceDir, ref);
 
             // Create step entities in database
             List<BuildStep> steps = new ArrayList<>();

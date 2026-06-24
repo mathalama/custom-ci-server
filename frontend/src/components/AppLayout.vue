@@ -4,17 +4,17 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="logo">
-          <span class="logo-icon">⚙️</span>
+          <Icon name="gear" :size="20" />
           <span class="logo-text">RabotyagaCI</span>
         </div>
       </div>
       <nav class="sidebar-nav">
         <router-link to="/" class="nav-item" active-class="active">
-          <span class="nav-icon">📊</span>
+          <Icon name="dashboard" :size="18" />
           <span>Dashboard</span>
         </router-link>
         <router-link to="/projects" class="nav-item" active-class="active">
-          <span class="nav-icon">📁</span>
+          <Icon name="folder" :size="18" />
           <span>Проекты</span>
         </router-link>
       </nav>
@@ -30,6 +30,10 @@
   </div>
 </template>
 
+<script setup lang="ts">
+import Icon from './Icon.vue'
+</script>
+
 <style scoped>
 .app-layout {
   display: flex;
@@ -37,7 +41,7 @@
 }
 
 .sidebar {
-  width: 240px;
+  width: 220px;
   background: var(--surface-elevated);
   border-right: 1px solid var(--border);
   display: flex;
@@ -58,18 +62,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.logo-icon {
-  font-size: 24px;
+  color: var(--text-primary);
 }
 
 .logo-text {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .sidebar-nav {
@@ -77,18 +77,18 @@
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-radius: 8px;
   color: var(--text-secondary);
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.15s;
   font-size: 14px;
 }
 
@@ -99,12 +99,8 @@
 
 .nav-item.active {
   background: var(--accent-bg);
-  color: var(--accent);
+  color: var(--text-primary);
   font-weight: 600;
-}
-
-.nav-icon {
-  font-size: 18px;
 }
 
 .sidebar-footer {
@@ -119,7 +115,7 @@
 
 .main-content {
   flex: 1;
-  margin-left: 240px;
+  margin-left: 220px;
   padding: 32px;
   background: var(--surface);
   min-height: 100vh;

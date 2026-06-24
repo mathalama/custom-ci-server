@@ -13,15 +13,15 @@
         <div class="stat-label">Проектов</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" style="color: var(--success)">{{ successCount }}</div>
+        <div class="stat-value">{{ successCount }}</div>
         <div class="stat-label">Успешных билдов</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" style="color: var(--failure)">{{ failureCount }}</div>
+        <div class="stat-value">{{ failureCount }}</div>
         <div class="stat-label">Упавших билдов</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" style="color: var(--running)">{{ runningCount }}</div>
+        <div class="stat-value">{{ runningCount }}</div>
         <div class="stat-label">В процессе</div>
       </div>
     </div>
@@ -29,7 +29,9 @@
     <h2 class="card-title">Последние билды</h2>
     <div v-if="loading" class="loading"><div class="spinner"></div></div>
     <div v-else-if="recentBuilds.length === 0" class="empty-state">
-      <div class="empty-state-icon">📦</div>
+      <div class="empty-state-icon">
+        <Icon name="package" :size="40" />
+      </div>
       <div class="empty-state-text">Пока нет билдов. Создайте проект и запустите первый билд!</div>
     </div>
     <div v-else class="builds-list">
@@ -43,6 +45,7 @@ import { ref, computed, onMounted } from 'vue'
 import { getProjects, getBuilds } from '@/api/client'
 import type { ProjectResponse, BuildResponse } from '@/types'
 import BuildCard from '@/components/BuildCard.vue'
+import Icon from '@/components/Icon.vue'
 
 const projects = ref<ProjectResponse[]>([])
 const recentBuilds = ref<BuildResponse[]>([])

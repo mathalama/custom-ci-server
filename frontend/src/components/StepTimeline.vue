@@ -9,10 +9,10 @@
     >
       <div class="timeline-dot" :class="step.status.toLowerCase()">
         <span v-if="step.status === 'RUNNING'" class="spinner-small"></span>
-        <span v-else-if="step.status === 'SUCCESS'">✓</span>
-        <span v-else-if="step.status === 'FAILURE'">✕</span>
-        <span v-else-if="step.status === 'SKIPPED'">⊘</span>
-        <span v-else>•</span>
+        <Icon v-else-if="step.status === 'SUCCESS'" name="check" :size="13" />
+        <Icon v-else-if="step.status === 'FAILURE'" name="x-mark" :size="13" />
+        <Icon v-else-if="step.status === 'SKIPPED'" name="minus" :size="13" />
+        <Icon v-else name="dot" :size="8" />
       </div>
       <div class="timeline-content">
         <div class="step-name">{{ step.name }}</div>
@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import type { BuildStepResponse } from '@/types'
+import Icon from './Icon.vue'
 
 defineProps<{
   steps: BuildStepResponse[]
@@ -59,7 +60,7 @@ const formatDuration = (ms: number) => {
   padding: 10px 12px;
   border-radius: var(--radius);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.15s;
 }
 
 .timeline-item:hover, .timeline-item.active {
@@ -67,36 +68,37 @@ const formatDuration = (ms: number) => {
 }
 
 .timeline-dot {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
   flex-shrink: 0;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
 }
 
-.timeline-dot.success { background: var(--success-bg); color: var(--success); }
-.timeline-dot.failure { background: var(--failure-bg); color: var(--failure); }
-.timeline-dot.running { background: var(--running-bg); color: var(--running); }
-.timeline-dot.pending { background: var(--pending-bg); color: var(--pending); }
-.timeline-dot.skipped { background: var(--pending-bg); color: var(--skipped); }
+.timeline-dot.success { color: var(--success); border-color: var(--success); }
+.timeline-dot.failure { color: var(--failure); border-color: var(--failure); }
+.timeline-dot.running { color: var(--running); border-color: var(--running); }
+.timeline-dot.pending { color: var(--pending); }
+.timeline-dot.skipped { color: var(--skipped); }
 
 .spinner-small {
-  width: 14px;
-  height: 14px;
-  border: 2px solid var(--running-bg);
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--border);
   border-top-color: var(--running);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.7s linear infinite;
 }
 
 .timeline-content { flex: 1; }
 
 .step-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
 }
 

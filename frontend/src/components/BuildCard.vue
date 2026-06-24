@@ -5,19 +5,22 @@
         <span class="build-id">#{{ build.id }}</span>
         <StatusBadge :status="build.status" />
       </div>
-      <span class="build-trigger">{{ triggerIcon }} {{ build.triggerType }}</span>
+      <span class="build-trigger">
+        <Icon :name="triggerIcon" :size="14" />
+        {{ build.triggerType }}
+      </span>
     </div>
     <div class="build-meta">
       <div class="meta-item">
-        <span class="meta-icon">🌿</span>
+        <Icon name="git-branch" :size="14" />
         <span>{{ build.branch }}</span>
       </div>
       <div class="meta-item">
-        <span class="meta-icon">📝</span>
+        <Icon name="git-commit" :size="14" />
         <code class="commit-sha">{{ build.commitSha.slice(0, 7) }}</code>
       </div>
       <div class="meta-item" v-if="duration">
-        <span class="meta-icon">⏱️</span>
+        <Icon name="clock" :size="14" />
         <span>{{ duration }}</span>
       </div>
     </div>
@@ -31,16 +34,17 @@
 import { computed } from 'vue'
 import type { BuildResponse } from '@/types'
 import StatusBadge from './StatusBadge.vue'
+import Icon from './Icon.vue'
 
 const props = defineProps<{ build: BuildResponse }>()
 
 const triggerIcon = computed(() => {
   const icons: Record<string, string> = {
-    WEBHOOK: '🔗',
-    MANUAL: '👤',
-    SCHEDULE: '🕐',
+    WEBHOOK: 'webhook',
+    MANUAL: 'user',
+    SCHEDULE: 'schedule',
   }
-  return icons[props.build.triggerType] || '❓'
+  return icons[props.build.triggerType] || 'question'
 })
 
 const duration = computed(() => {
@@ -83,13 +87,16 @@ const formatTime = (iso: string) => {
 }
 
 .build-id {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
 }
 
 .build-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .build-meta {
@@ -101,22 +108,19 @@ const formatTime = (iso: string) => {
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-size: 13px;
   color: var(--text-secondary);
-}
-
-.meta-icon {
-  font-size: 14px;
 }
 
 .commit-sha {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-  background: var(--surface);
+  background: var(--surface-elevated);
   padding: 2px 6px;
   border-radius: 4px;
-  color: var(--accent);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
 }
 
 .build-time {

@@ -5,10 +5,11 @@
       <div>
         <h1 class="page-title">Билд #{{ build.id }}</h1>
         <p class="page-subtitle">
-          <router-link :to="`/projects/${build.projectId}`" style="color: var(--accent)">
-            ← Проект
+          <router-link :to="`/projects/${build.projectId}`" class="back-link">
+            <Icon name="arrow-left" :size="14" />
+            Проект
           </router-link>
-          · {{ build.branch }} · {{ build.commitSha.slice(0, 7) }}
+          <span class="separator">·</span> {{ build.branch }} <span class="separator">·</span> {{ build.commitSha.slice(0, 7) }}
         </p>
       </div>
       <div style="display: flex; gap: 8px; align-items: center">
@@ -55,11 +56,17 @@
 
     <!-- Artifacts -->
     <div v-if="artifacts.length > 0" class="card" style="margin-top: 24px">
-      <h3 class="card-title">📦 Артефакты</h3>
+      <h3 class="card-title">
+        <Icon name="package" :size="16" style="margin-right: 6px" />
+        Артефакты
+      </h3>
       <div v-for="artifact in artifacts" :key="artifact.id" class="artifact-item">
         <span>{{ artifact.fileName }}</span>
         <span class="artifact-size">{{ formatSize(artifact.fileSize) }}</span>
-        <a :href="getDownloadUrl(artifact.id)" class="btn" download>⬇️ Скачать</a>
+        <a :href="getDownloadUrl(artifact.id)" class="btn" download>
+          <Icon name="download" :size="14" />
+          Скачать
+        </a>
       </div>
     </div>
   </div>
@@ -72,6 +79,7 @@ import type { BuildResponse, BuildArtifact } from '@/types'
 import StatusBadge from '@/components/StatusBadge.vue'
 import StepTimeline from '@/components/StepTimeline.vue'
 import LogViewer from '@/components/LogViewer.vue'
+import Icon from '@/components/Icon.vue'
 
 const props = defineProps<{ id: string }>()
 
@@ -154,6 +162,24 @@ const formatSize = (bytes: number) => {
   position: sticky;
   top: 32px;
   align-self: start;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.back-link:hover {
+  color: var(--text-primary);
+}
+
+.separator {
+  color: var(--text-muted);
+  margin: 0 2px;
 }
 
 .artifact-item {

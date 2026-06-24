@@ -30,33 +30,26 @@ const label = computed(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: 20px;
+  padding: 3px 10px;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
+  background: var(--text-muted);
 }
 
-.success { background: var(--success-bg); color: var(--success); }
 .success .status-dot { background: var(--success); }
-
-.failure { background: var(--failure-bg); color: var(--failure); }
 .failure .status-dot { background: var(--failure); }
-
-.running { background: var(--running-bg); color: var(--running); }
 .running .status-dot { background: var(--running); }
-
-.pending { background: var(--pending-bg); color: var(--pending); }
 .pending .status-dot { background: var(--pending); }
-
-.cancelled { background: var(--cancelled-bg); color: var(--cancelled); }
 .cancelled .status-dot { background: var(--cancelled); }
-
-.skipped { background: var(--pending-bg); color: var(--skipped); }
 .skipped .status-dot { background: var(--skipped); }
 </style>

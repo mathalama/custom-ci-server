@@ -61,8 +61,9 @@ public class DockerRunnerService {
             pullImageIfNeeded(event.dockerImage());
 
             // 3. Configure mount
-            Volume containerWorkspaceVolume = new Volume("/workspace");
-            Bind workspaceBind = new Bind(workspacePath.toAbsolutePath().toString(), containerWorkspaceVolume);
+            // Use the Docker Compose-prefixed volume name (e.g. "rabotyagaci_app-data")
+            Volume containerWorkspaceVolume = new Volume("/app-data");
+            Bind workspaceBind = new Bind(runnerConfig.getVolumeName(), containerWorkspaceVolume);
 
             // 4. Configure host limits
             HostConfig hostConfig = HostConfig.newHostConfig()
@@ -72,15 +73,18 @@ public class DockerRunnerService {
                     .withNetworkMode(runnerConfig.getNetworkMode());
 
             // 5. Build commands shell script
-            String commandScript = "set -e\ncd /workspace\n" + String.join("\n", event.commands());
+            // Map the backend's internal path (/tmp/rabotyagaci/...) to the container's mounted volume path (/app-data/...)
+            String containerWorkingDir = event.workspaceDir().toString().replace("/tmp/rabotyagaci", "/app-data").replace("\\", "/");
+            String commandScript = "set -e\ncd " + containerWorkingDir + "\n" + String.join("\n", event.commands());
 
-            log.info("Creating container for step {} with image {}", event.stepName(), event.dockerImage());
+            log.info("Creating container for step {} with image {}. Volume: {}, workingDir: {}",
+                    event.stepName(), event.dockerImage(), runnerConfig.getVolumeName(), containerWorkingDir);
 
             // 6. Create container
             CreateContainerResponse containerResponse = dockerClient.createContainerCmd(event.dockerImage())
                     .withHostConfig(hostConfig)
                     .withCmd("/bin/sh", "-c", commandScript)
-                    .withWorkingDir("/workspace")
+                    .withWorkingDir(containerWorkingDir)
                     .exec();
 
             containerId = containerResponse.getId();

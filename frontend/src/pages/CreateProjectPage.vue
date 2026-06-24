@@ -83,7 +83,8 @@ const handleSubmit = async () => {
   color: var(--failure);
   font-size: 14px;
   padding: 8px 12px;
-  background: var(--failure-bg);
+  background: var(--surface-elevated);
+  border: 1px solid var(--failure);
   border-radius: var(--radius);
   margin-top: 12px;
 }
