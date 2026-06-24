@@ -11,5 +11,6 @@ public record UpdateProjectRequest(
         GitProvider gitProvider,
         String defaultBranch,
         String pipelineConfigPath,
-        Boolean isActive
+        Boolean isActive,
+        String githubToken
 ) {}

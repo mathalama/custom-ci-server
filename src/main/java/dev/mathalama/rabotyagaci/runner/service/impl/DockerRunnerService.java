@@ -80,11 +80,18 @@ public class DockerRunnerService {
             log.info("Creating container for step {} with image {}. Volume: {}, workingDir: {}",
                     event.stepName(), event.dockerImage(), runnerConfig.getVolumeName(), containerWorkingDir);
 
+            // Map env variables for container
+            java.util.List<String> envList = new java.util.ArrayList<>();
+            if (event.environmentVariables() != null) {
+                event.environmentVariables().forEach((k, v) -> envList.add(k + "=" + v));
+            }
+
             // 6. Create container
             CreateContainerResponse containerResponse = dockerClient.createContainerCmd(event.dockerImage())
                     .withHostConfig(hostConfig)
                     .withCmd("/bin/sh", "-c", commandScript)
                     .withWorkingDir(containerWorkingDir)
+                    .withEnv(envList)
                     .exec();
 
             containerId = containerResponse.getId();

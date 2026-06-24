@@ -34,6 +34,12 @@
         <input v-model="form.pipelineConfigPath" class="form-input" placeholder=".rabotyaga.yaml" />
       </div>
 
+      <div class="form-group">
+        <label class="form-label">GitHub Token (опционально)</label>
+        <input v-model="form.githubToken" type="password" class="form-input" placeholder="ghp_..." />
+        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Нужен для отправки статусов сборок в GitHub PRs/Commits</div>
+      </div>
+
       <div v-if="error" class="error-message">{{ error }}</div>
 
       <div style="display: flex; gap: 12px; margin-top: 24px">
@@ -62,6 +68,7 @@ const form = ref<CreateProjectRequest>({
   gitProvider: 'GITHUB' as GitProvider,
   defaultBranch: 'main',
   pipelineConfigPath: '.action.yaml',
+  githubToken: '',
 })
 
 const handleSubmit = async () => {

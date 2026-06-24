@@ -29,6 +29,7 @@ export interface ProjectResponse {
   webhookSecret: string
   pipelineConfigPath: string
   isActive: boolean
+  githubToken?: string
   createdAt: string
   updatedAt: string
 }
@@ -73,9 +74,22 @@ export interface CreateProjectRequest {
   gitProvider: GitProvider
   defaultBranch?: string
   pipelineConfigPath?: string
+  githubToken?: string
 }
 
 export interface TriggerBuildRequest {
   branch: string
   commitSha: string
+}
+
+export interface SecretResponse {
+  id: number
+  name: string
+  value: string
+  createdAt: string
+}
+
+export interface CreateSecretRequest {
+  name: string
+  value: string
 }

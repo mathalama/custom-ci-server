@@ -12,6 +12,7 @@ public record ProjectResponse(
         String webhookSecret,
         String pipelineConfigPath,
         boolean isActive,
+        String githubToken,
         Instant createdAt,
         Instant updatedAt
 ) {}

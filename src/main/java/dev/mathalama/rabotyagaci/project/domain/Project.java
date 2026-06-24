@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "projects")
@@ -37,6 +38,9 @@ public class Project {
     @Column(name = "webhook_secret", nullable = false)
     private String webhookSecret;
 
+    @Column(name = "github_token")
+    private String githubToken;
+
     @Builder.Default
     @Column(name = "pipeline_config_path", nullable = false)
     private String pipelineConfigPath = ".rabotyaga.yaml";
@@ -52,4 +56,8 @@ public class Project {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ProjectSecret> secrets = new java.util.ArrayList<>();
 }

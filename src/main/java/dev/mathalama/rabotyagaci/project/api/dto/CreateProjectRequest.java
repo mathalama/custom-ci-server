@@ -16,5 +16,7 @@ public record CreateProjectRequest(
 
         String defaultBranch,
 
-        String pipelineConfigPath
+        String pipelineConfigPath,
+
+        String githubToken
 ) {}

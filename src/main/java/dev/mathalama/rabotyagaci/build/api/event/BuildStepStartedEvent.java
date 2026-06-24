@@ -12,5 +12,6 @@ public record BuildStepStartedEvent(
         String stepName,
         String dockerImage,
         List<String> commands,
-        Path workspaceDir
+        Path workspaceDir,
+        java.util.Map<String, String> environmentVariables
 ) {}

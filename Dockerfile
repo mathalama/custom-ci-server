@@ -1,12 +1,6 @@
-# Stage 1: Build the application
-FROM eclipse-temurin:21-jdk AS builder
-WORKDIR /app
-COPY . .
-RUN ./gradlew bootJar --no-daemon
-
-# Stage 2: Run the application
+# Skip builder stage since network prevents gradle download inside Docker on this host
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY build/libs/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

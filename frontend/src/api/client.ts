@@ -7,6 +7,8 @@ import type {
   BuildArtifact,
   CreateProjectRequest,
   TriggerBuildRequest,
+  SecretResponse,
+  CreateSecretRequest,
 } from '@/types'
 
 const api = axios.create({
@@ -31,6 +33,16 @@ export const updateProject = (id: number, data: Partial<CreateProjectRequest>) =
 
 export const deleteProject = (id: number) =>
   api.delete(`/projects/${id}`)
+
+// ===== Secrets =====
+export const getSecrets = (projectId: number) =>
+  api.get<ApiResponse<SecretResponse[]>>(`/projects/${projectId}/secrets`)
+
+export const addSecret = (projectId: number, data: CreateSecretRequest) =>
+  api.post<ApiResponse<SecretResponse>>(`/projects/${projectId}/secrets`, data)
+
+export const deleteSecret = (projectId: number, secretId: number) =>
+  api.delete(`/projects/${projectId}/secrets/${secretId}`)
 
 // ===== Builds =====
 export const getBuilds = (projectId: number, page = 0, size = 20) =>

@@ -19,6 +19,7 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
@@ -42,8 +43,13 @@ spring:
       mail:
         smtp:
           auth: true
+          ssl:
+            enable: true
           starttls:
             enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 rabotyagaci:
   frontend:
