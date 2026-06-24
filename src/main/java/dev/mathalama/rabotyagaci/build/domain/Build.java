@@ -56,11 +56,14 @@ public class Build {
     @Column(name = "notify_on_success", length = 1000)
     private String notifyOnSuccess;
 
-    @Column(name = "notify_on_failure", length = 1000)
+    @Column(name = "notify_on_failure")
     private String notifyOnFailure;
 
+    @Column(name = "cached_paths")
+    private String cachedPaths;
+
     @Builder.Default
-    @OneToMany(mappedBy = "build", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "build", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @OrderBy("stepOrder ASC")
     private List<BuildStep> steps = new ArrayList<>();
 }

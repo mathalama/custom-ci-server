@@ -9,5 +9,6 @@ public record PipelineDefinition(
         int version,
         String name,
         List<StepDefinition> steps,
-        NotificationsDefinition notifications
+        NotificationsDefinition notifications,
+        CacheDefinition cache
 ) {}

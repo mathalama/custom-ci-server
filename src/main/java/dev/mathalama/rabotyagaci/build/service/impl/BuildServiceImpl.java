@@ -50,6 +50,7 @@ public class BuildServiceImpl implements BuildService {
     private final ProjectRepository projectRepository;
     private final PipelineService pipelineService;
     private final GitCloneService gitCloneService;
+    private final BuildCacheService buildCacheService;
     private final BuildMapper buildMapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -136,6 +137,12 @@ public class BuildServiceImpl implements BuildService {
                     : build.getBranch();
 
             gitCloneService.checkoutCommit(workspaceDir, ref);
+
+            if (pipelineDef.cache() != null && pipelineDef.cache().paths() != null && !pipelineDef.cache().paths().isEmpty()) {
+                build.setCachedPaths(String.join(",", pipelineDef.cache().paths()));
+                buildRepository.save(build);
+                buildCacheService.restoreCache(build.getProject().getId(), workspaceDir, pipelineDef.cache().paths());
+            }
 
             // Create step entities in database
             List<BuildStep> steps = new ArrayList<>();
@@ -293,13 +300,22 @@ public class BuildServiceImpl implements BuildService {
             // Convert raw newline-separated commands from DB back into List<String>
             List<String> commands = List.of(nextStep.getCommands().split("\n"));
 
+            // Map secrets to environment variables
+            java.util.Map<String, String> envVars = new java.util.HashMap<>();
+            if (build.getProject().getSecrets() != null) {
+                build.getProject().getSecrets().forEach(secret -> 
+                    envVars.put(secret.getName(), secret.getValue())
+                );
+            }
+
             eventPublisher.publishEvent(new BuildStepStartedEvent(
                     build.getId(),
                     nextStep.getId(),
                     nextStep.getName(),
                     nextStep.getDockerImage(),
                     commands,
-                    workspaceDir
+                    workspaceDir,
+                    envVars
             ));
         } else {
             log.info("All steps completed successfully. Finalizing build ID: {}", build.getId());
@@ -308,6 +324,11 @@ public class BuildServiceImpl implements BuildService {
             Instant finishedAt = Instant.now();
             build.setFinishedAt(finishedAt);
             buildRepository.save(build);
+
+            if (build.getCachedPaths() != null && !build.getCachedPaths().isBlank()) {
+                Path workspaceDir = Path.of(workspaceDirParent).resolve("build-" + build.getId());
+                buildCacheService.saveCache(build.getProject().getId(), workspaceDir, List.of(build.getCachedPaths().split(",")));
+            }
 
             eventPublisher.publishEvent(new BuildCompletedEvent(build.getId(), BuildStatus.SUCCESS, finishedAt));
         }
