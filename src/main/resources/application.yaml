@@ -71,6 +71,9 @@ rabotyagaci:
   artifacts:
     storage-dir: /var/rabotyagaci/artifacts
     retention-days: 30
+  retention:
+    builds-days: 30
+    cron: "0 0 4 * * *" # Every day at 4:00 AM
   auth:
     enabled: false
     api-key: "super-secret-key-change-me"

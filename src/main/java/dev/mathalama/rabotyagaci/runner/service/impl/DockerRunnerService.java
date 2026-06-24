@@ -8,6 +8,7 @@ import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.api.async.ResultCallback;
+import dev.mathalama.rabotyagaci.build.api.event.BuildCancelledEvent;
 import dev.mathalama.rabotyagaci.build.api.event.BuildStepStartedEvent;
 import dev.mathalama.rabotyagaci.build.domain.StepStatus;
 import dev.mathalama.rabotyagaci.runner.api.event.BuildStepCompletedEvent;
@@ -38,6 +39,21 @@ public class DockerRunnerService {
     private final DockerClient dockerClient;
     private final RunnerConfig runnerConfig;
     private final ApplicationEventPublisher eventPublisher;
+
+    private final java.util.concurrent.ConcurrentHashMap<Long, String> activeContainers = new java.util.concurrent.ConcurrentHashMap<>();
+
+    @EventListener
+    public void handleBuildCancelled(BuildCancelledEvent event) {
+        String containerId = activeContainers.get(event.buildId());
+        if (containerId != null) {
+            log.info("Received cancellation for build ID {}, killing container {}", event.buildId(), containerId);
+            try {
+                dockerClient.killContainerCmd(containerId).exec();
+            } catch (Exception e) {
+                log.warn("Failed to kill container {} for cancelled build {}", containerId, event.buildId(), e);
+            }
+        }
+    }
 
     @Async
     @EventListener
@@ -96,6 +112,7 @@ public class DockerRunnerService {
 
             containerId = containerResponse.getId();
             log.info("Container created with ID: {}", containerId);
+            activeContainers.put(event.buildId(), containerId);
 
             // 7. Start container
             dockerClient.startContainerCmd(containerId).exec();
@@ -171,6 +188,7 @@ public class DockerRunnerService {
 
             // Cleanup container
             if (containerId != null) {
+                activeContainers.remove(event.buildId());
                 try {
                     log.info("Stopping container: {}", containerId);
                     dockerClient.stopContainerCmd(containerId).exec();
