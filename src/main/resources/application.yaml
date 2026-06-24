@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: rabotyagaCI
+
+  profiles:
+    active: dev
+
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rabotyagaci}
+    username: ${DB_USERNAME:rabotyagaci}
+    password: ${DB_PASSWORD:rabotyagaci}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+rabotyagaci:
+  runner:
+    docker-host: unix:///var/run/docker.sock
+    workspace-dir: /tmp/rabotyagaci/workspaces
+    default-timeout: 600 
+    max-concurrent-builds: 3
+    container-memory-limit: 512m
+    container-cpu-limit: 1.0
+    network-mode: bridge
+  git:
+    clone-dir: /tmp/rabotyagaci/repos
+  artifacts:
+    storage-dir: /var/rabotyagaci/artifacts
+    retention-days: 30
+  auth:
+    enabled: false
+    api-key: "super-secret-key-change-me"

@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: rabotyagaci-db
+    environment:
+      POSTGRES_DB: rabotyagaci
+      POSTGRES_USER: rabotyagaci
+      POSTGRES_PASSWORD: rabotyagaci
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rabotyagaci -d rabotyagaci"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: rabotyagaci-app
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=rabotyagaci
+      - DB_USERNAME=rabotyagaci
+      - DB_PASSWORD=rabotyagaci
+      - RABOTYAGACI_RUNNER_DOCKER_HOST=unix:///var/run/docker.sock
+      - RABOTYAGACI_RUNNER_WORKSPACE_DIR=/tmp/rabotyagaci/workspaces
+      - RABOTYAGACI_GIT_CLONE_DIR=/tmp/rabotyagaci/repos
+      - RABOTYAGACI_ARTIFACTS_STORAGE_DIR=/var/rabotyagaci/artifacts
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - app-data:/tmp/rabotyagaci
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: rabotyagaci-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  app-data:

@@ -1,0 +1,291 @@
+package dev.mathalama.rabotyagaci.build.service.impl;
+
+import dev.mathalama.rabotyagaci.build.api.BuildService;
+import dev.mathalama.rabotyagaci.build.api.dto.BuildResponse;
+import dev.mathalama.rabotyagaci.build.api.dto.TriggerBuildRequest;
+import dev.mathalama.rabotyagaci.build.api.event.BuildCancelledEvent;
+import dev.mathalama.rabotyagaci.build.api.event.BuildCompletedEvent;
+import dev.mathalama.rabotyagaci.build.api.event.BuildCreatedEvent;
+import dev.mathalama.rabotyagaci.build.api.event.BuildStepStartedEvent;
+import dev.mathalama.rabotyagaci.build.domain.Build;
+import dev.mathalama.rabotyagaci.build.domain.BuildStatus;
+import dev.mathalama.rabotyagaci.build.domain.BuildStep;
+import dev.mathalama.rabotyagaci.build.domain.StepStatus;
+import dev.mathalama.rabotyagaci.build.domain.TriggerType;
+import dev.mathalama.rabotyagaci.build.mapper.BuildMapper;
+import dev.mathalama.rabotyagaci.build.repository.BuildRepository;
+import dev.mathalama.rabotyagaci.build.repository.BuildStepRepository;
+import dev.mathalama.rabotyagaci.common.exception.BusinessException;
+import dev.mathalama.rabotyagaci.common.exception.ResourceNotFoundException;
+import dev.mathalama.rabotyagaci.pipeline.api.PipelineService;
+import dev.mathalama.rabotyagaci.pipeline.api.dto.PipelineDefinition;
+import dev.mathalama.rabotyagaci.pipeline.api.dto.StepDefinition;
+import dev.mathalama.rabotyagaci.project.domain.Project;
+import dev.mathalama.rabotyagaci.project.repository.ProjectRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class BuildServiceImpl implements BuildService {
+
+    private final BuildRepository buildRepository;
+    private final BuildStepRepository buildStepRepository;
+    private final ProjectRepository projectRepository;
+    private final PipelineService pipelineService;
+    private final BuildMapper buildMapper;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Value("${rabotyagaci.runner.workspace-dir}")
+    private String workspaceDirParent;
+
+    @Override
+    public BuildResponse trigger(Long projectId, TriggerBuildRequest request, TriggerType type) {
+        log.info("Triggering build for project ID: {}, branch: {}, commit: {}", projectId, request.branch(), request.commitSha());
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id " + projectId));
+
+        if (!project.isActive()) {
+            throw new BusinessException("Cannot trigger build for inactive project: " + project.getName());
+        }
+
+        Build build = Build.builder()
+                .project(project)
+                .branch(request.branch())
+                .commitSha(request.commitSha())
+                .triggerType(type)
+                .status(BuildStatus.PENDING)
+                .build();
+
+        Build savedBuild = buildRepository.save(build);
+        log.info("Build created with ID: {} in PENDING status", savedBuild.getId());
+
+        // Publish creation event
+        eventPublisher.publishEvent(new BuildCreatedEvent(savedBuild.getId(), projectId, type, savedBuild.getCreatedAt()));
+
+        // Start build execution asynchronously
+        // Using a self-invocation helper requires we call it asynchronously on a separate thread
+        // executeBuild is annotated with @Async and is run on a background TaskExecutor
+        executeBuild(savedBuild.getId());
+
+        return buildMapper.toResponse(savedBuild);
+    }
+
+    @Async
+    public void executeBuild(Long buildId) {
+        log.info("Asynchronously executing build ID: {}", buildId);
+
+        Build build = buildRepository.findById(buildId).orElse(null);
+        if (build == null) {
+            log.error("Build with ID: {} not found for execution", buildId);
+            return;
+        }
+
+        try {
+            // Update status to RUNNING
+            build.setStatus(BuildStatus.RUNNING);
+            build.setStartedAt(Instant.now());
+            build = buildRepository.save(build);
+
+            log.info("Cloning and parsing configuration file: {}", build.getProject().getPipelineConfigPath());
+
+            // Parse pipeline config (slow Git clone/fetch operation inside background thread)
+            PipelineDefinition pipelineDef = pipelineService.parse(
+                    build.getProject().getRepoUrl(),
+                    build.getBranch(),
+                    build.getCommitSha(),
+                    build.getProject().getPipelineConfigPath()
+            );
+
+            // Create step entities in database
+            List<BuildStep> steps = new ArrayList<>();
+            int order = 0;
+            for (StepDefinition stepDef : pipelineDef.steps()) {
+                BuildStep step = BuildStep.builder()
+                        .build(build)
+                        .name(stepDef.name())
+                        .stepOrder(order++)
+                        .dockerImage(stepDef.image())
+                        .commands(String.join("\n", stepDef.commands()))
+                        .status(StepStatus.PENDING)
+                        .build();
+                steps.add(step);
+            }
+
+            List<BuildStep> savedSteps = buildStepRepository.saveAll(steps);
+            build.setSteps(savedSteps);
+            build = buildRepository.save(build);
+
+            log.info("Pipeline parsed successfully. Starting execution of step 1 for build ID: {}", buildId);
+            startNextStep(build);
+
+        } catch (Exception e) {
+            log.error("Fatal error during build execution for ID: {}", buildId, e);
+            // Save fail state in database
+            if (build != null) {
+                build.setStatus(BuildStatus.FAILURE);
+                build.setFinishedAt(Instant.now());
+                buildRepository.save(build);
+                eventPublisher.publishEvent(new BuildCompletedEvent(buildId, BuildStatus.FAILURE, build.getFinishedAt()));
+            }
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BuildResponse getById(Long id) {
+        Build build = buildRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Build not found with id " + id));
+        return buildMapper.toResponse(build);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BuildResponse> getAll(Long projectId, Pageable pageable) {
+        if (!projectRepository.existsById(projectId)) {
+            throw new ResourceNotFoundException("Project not found with id " + projectId);
+        }
+        return buildRepository.findByProjectId(projectId, pageable)
+                .map(buildMapper::toResponse);
+    }
+
+    @Override
+    public void cancel(Long id) {
+        log.info("Request to cancel build ID: {}", id);
+        Build build = buildRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Build not found with id " + id));
+
+        if (build.getStatus() == BuildStatus.SUCCESS ||
+                build.getStatus() == BuildStatus.FAILURE ||
+                build.getStatus() == BuildStatus.CANCELLED) {
+            log.info("Build {} is already finished, ignore cancel request", id);
+            return;
+        }
+
+        Instant cancelledAt = Instant.now();
+        build.setStatus(BuildStatus.CANCELLED);
+        build.setFinishedAt(cancelledAt);
+        buildRepository.save(build);
+
+        // Cancel all steps
+        for (BuildStep step : build.getSteps()) {
+            if (step.getStatus() == StepStatus.PENDING) {
+                step.setStatus(StepStatus.SKIPPED);
+                buildStepRepository.save(step);
+            } else if (step.getStatus() == StepStatus.RUNNING) {
+                step.setStatus(StepStatus.FAILURE); // Running steps marked as failure on cancel
+                step.setFinishedAt(cancelledAt);
+                buildStepRepository.save(step);
+            }
+        }
+
+        log.info("Build {} has been CANCELLED", id);
+        eventPublisher.publishEvent(new BuildCancelledEvent(id, cancelledAt));
+        eventPublisher.publishEvent(new BuildCompletedEvent(id, BuildStatus.CANCELLED, cancelledAt));
+    }
+
+    @Override
+    public void onStepCompleted(Long buildId, Long stepId, StepStatus status, int exitCode) {
+        log.info("Callback for step completed: build ID {}, step ID {}, status: {}, exitCode: {}",
+                buildId, stepId, status, exitCode);
+
+        Build build = buildRepository.findById(buildId)
+                .orElseThrow(() -> new ResourceNotFoundException("Build not found with id " + buildId));
+
+        if (build.getStatus() == BuildStatus.CANCELLED) {
+            log.info("Build {} is already cancelled, ignoring step completion callback", buildId);
+            return;
+        }
+
+        BuildStep step = buildStepRepository.findById(stepId)
+                .orElseThrow(() -> new ResourceNotFoundException("Build step not found with id " + stepId));
+
+        Instant finishedAt = Instant.now();
+        long durationMs = step.getStartedAt() != null ?
+                Duration.between(step.getStartedAt(), finishedAt).toMillis() : 0L;
+
+        step.setStatus(status);
+        step.setExitCode(exitCode);
+        step.setFinishedAt(finishedAt);
+        step.setDurationMs(durationMs);
+        buildStepRepository.save(step);
+
+        if (status == StepStatus.FAILURE) {
+            log.warn("Step {} failed for build ID: {}. Skipping remaining steps", step.getName(), buildId);
+
+            // Skip all remaining steps
+            for (BuildStep s : build.getSteps()) {
+                if (s.getStatus() == StepStatus.PENDING) {
+                    s.setStatus(StepStatus.SKIPPED);
+                    buildStepRepository.save(s);
+                }
+            }
+
+            // Mark build as failure
+            build.setStatus(BuildStatus.FAILURE);
+            build.setFinishedAt(finishedAt);
+            buildRepository.save(build);
+
+            eventPublisher.publishEvent(new BuildCompletedEvent(buildId, BuildStatus.FAILURE, finishedAt));
+
+        } else if (status == StepStatus.SUCCESS) {
+            log.info("Step {} completed successfully. Checking for next step", step.getName());
+            startNextStep(build);
+        }
+    }
+
+    private void startNextStep(Build build) {
+        BuildStep nextStep = build.getSteps().stream()
+                .filter(step -> step.getStatus() == StepStatus.PENDING)
+                .findFirst()
+                .orElse(null);
+
+        if (nextStep != null) {
+            log.info("Starting build step: {} (order {})", nextStep.getName(), nextStep.getStepOrder());
+
+            nextStep.setStatus(StepStatus.RUNNING);
+            nextStep.setStartedAt(Instant.now());
+            buildStepRepository.save(nextStep);
+
+            // Compute step workspace folder (shared workspace for all steps of this build)
+            Path workspaceDir = Path.of(workspaceDirParent).resolve("build-" + build.getId());
+
+            // Convert raw newline-separated commands from DB back into List<String>
+            List<String> commands = List.of(nextStep.getCommands().split("\n"));
+
+            eventPublisher.publishEvent(new BuildStepStartedEvent(
+                    build.getId(),
+                    nextStep.getId(),
+                    nextStep.getName(),
+                    nextStep.getDockerImage(),
+                    commands,
+                    workspaceDir
+            ));
+        } else {
+            log.info("All steps completed successfully. Finalizing build ID: {}", build.getId());
+
+            build.setStatus(BuildStatus.SUCCESS);
+            Instant finishedAt = Instant.now();
+            build.setFinishedAt(finishedAt);
+            buildRepository.save(build);
+
+            eventPublisher.publishEvent(new BuildCompletedEvent(build.getId(), BuildStatus.SUCCESS, finishedAt));
+        }
+    }
+}

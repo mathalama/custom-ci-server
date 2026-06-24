@@ -1,0 +1,78 @@
+import axios from 'axios'
+import type {
+  ApiResponse,
+  PagedResponse,
+  ProjectResponse,
+  BuildResponse,
+  BuildArtifact,
+  CreateProjectRequest,
+  TriggerBuildRequest,
+} from '@/types'
+
+const api = axios.create({
+  baseURL: '/api/v1',
+  headers: { 'Content-Type': 'application/json' },
+})
+
+// ===== Projects =====
+export const getProjects = (page = 0, size = 20) =>
+  api.get<ApiResponse<PagedResponse<ProjectResponse>>>('/projects', {
+    params: { page, size },
+  })
+
+export const getProject = (id: number) =>
+  api.get<ApiResponse<ProjectResponse>>(`/projects/${id}`)
+
+export const createProject = (data: CreateProjectRequest) =>
+  api.post<ApiResponse<ProjectResponse>>('/projects', data)
+
+export const updateProject = (id: number, data: Partial<CreateProjectRequest>) =>
+  api.put<ApiResponse<ProjectResponse>>(`/projects/${id}`, data)
+
+export const deleteProject = (id: number) =>
+  api.delete(`/projects/${id}`)
+
+// ===== Builds =====
+export const getBuilds = (projectId: number, page = 0, size = 20) =>
+  api.get<ApiResponse<PagedResponse<BuildResponse>>>('/builds', {
+    params: { projectId, page, size },
+  })
+
+export const getBuild = (id: number) =>
+  api.get<ApiResponse<BuildResponse>>(`/builds/${id}`)
+
+export const triggerBuild = (projectId: number, data: TriggerBuildRequest) =>
+  api.post<ApiResponse<BuildResponse>>(`/projects/${projectId}/trigger`, data)
+
+export const cancelBuild = (id: number) =>
+  api.post<ApiResponse<void>>(`/builds/${id}/cancel`)
+
+// ===== Artifacts =====
+export const getArtifacts = (buildId: number) =>
+  api.get<ApiResponse<BuildArtifact[]>>(`/builds/${buildId}/artifacts`)
+
+export const getArtifactDownloadUrl = (buildId: number, artifactId: number) =>
+  `/api/v1/builds/${buildId}/artifacts/${artifactId}/download`
+
+// ===== Logs SSE =====
+export const createLogStream = (
+  buildId: number,
+  stepId: number,
+  onMessage: (data: { stream: string; content: string; lineNumber: number; timestamp: string }) => void,
+  onError?: (err: Event) => void
+): EventSource => {
+  const url = `/api/v1/builds/${buildId}/steps/${stepId}/logs/stream`
+  const eventSource = new EventSource(url)
+
+  eventSource.addEventListener('log-chunk', (event) => {
+    const data = JSON.parse(event.data)
+    onMessage(data)
+  })
+
+  eventSource.onerror = (err) => {
+    if (onError) onError(err)
+    eventSource.close()
+  }
+
+  return eventSource
+}

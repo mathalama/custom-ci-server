@@ -1,0 +1,12 @@
+spring:
+  jpa:
+    show-sql: true
+
+rabotyagaci:
+  runner:
+    docker-host: npipe:////./pipe/docker_engine
+    workspace-dir: ${java.io.tmpdir}/rabotyagaci/workspaces
+  git:
+    clone-dir: ${java.io.tmpdir}/rabotyagaci/repos
+  artifacts:
+    storage-dir: ${java.io.tmpdir}/rabotyagaci/artifacts

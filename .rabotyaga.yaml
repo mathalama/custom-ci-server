@@ -1,0 +1,11 @@
+version: 1
+name: Frontend Build Pipeline
+steps:
+  - name: Install dependencies and Build
+    image: node:20-alpine # Используем образ с Node.js для сборки Vue-фронтенда
+    commands:
+      - cd frontend
+      - npm install
+      - npm run build
+    artifacts:
+      - frontend/dist # Указываем папку с собранными файлами для сохранения
