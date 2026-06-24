@@ -12,10 +12,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Transactional
 public class GitHubStatusEventListener {
 
     private final BuildRepository buildRepository;
@@ -49,7 +51,8 @@ public class GitHubStatusEventListener {
         processStatus(event.buildId(), status, description);
     }
 
-    private void processStatus(Long buildId, String githubState, String description) {
+    @Transactional
+    protected void processStatus(Long buildId, String githubState, String description) {
         Build build = buildRepository.findById(buildId).orElse(null);
         if (build == null || build.getCommitSha() == null) {
             return;
