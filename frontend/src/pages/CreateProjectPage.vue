@@ -61,7 +61,7 @@ const form = ref<CreateProjectRequest>({
   repoUrl: '',
   gitProvider: 'GITHUB' as GitProvider,
   defaultBranch: 'main',
-  pipelineConfigPath: '.rabotyaga.yaml',
+  pipelineConfigPath: '.action.yaml',
 })
 
 const handleSubmit = async () => {

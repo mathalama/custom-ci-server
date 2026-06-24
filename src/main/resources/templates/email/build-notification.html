@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+            color: #111827;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .content {
+            padding: 32px 24px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .status-badge.success {
+            background-color: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+        .status-badge.failure {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+        .details {
+            margin-bottom: 32px;
+        }
+        .details p {
+            margin: 8px 0;
+            font-size: 15px;
+            color: #4b5563;
+        }
+        .details strong {
+            color: #111827;
+        }
+        .action {
+            text-align: center;
+            margin-top: 32px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #111827;
+            color: #ffffff;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .footer {
+            padding: 20px;
+            text-align: center;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RabotyagaCI</h1>
+        </div>
+        
+        <div class="content">
+            <h2 style="margin-top: 0; font-size: 18px; color: #111827;">Build Update</h2>
+            
+            <div th:class="'status-badge ' + ${status.toLowerCase()}">
+                <span th:text="${status}">SUCCESS</span>
+            </div>
+            
+            <div class="details">
+                <p><strong>Project:</strong> <span th:text="${projectName}">my-awesome-app</span></p>
+                <p><strong>Branch:</strong> <span th:text="${branch}">main</span></p>
+                <p><strong>Build ID:</strong> #<span th:text="${buildId}">42</span></p>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 15px; line-height: 1.5;">
+                The build workflow for your project has finished executing. 
+                You can review the full logs, step details, and any generated artifacts on the dashboard.
+            </p>
+            
+            <div class="action">
+                <a th:href="${buildUrl}" class="btn">View Build Details</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p style="margin: 0;">Automated message sent by RabotyagaCI Server</p>
+        </div>
+    </div>
+</body>
+</html>

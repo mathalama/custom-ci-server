@@ -22,9 +22,13 @@ public class WebhookController {
     public ResponseEntity<ApiResponse<String>> handleGitHubWebhook(
             @PathVariable Long projectId,
             @RequestHeader(value = "X-Hub-Signature-256", required = false) String signatureHeader,
-            @RequestBody String payload
+            @RequestBody(required = false) String payload
     ) {
-        log.info("Received GitHub webhook for project ID: {}", projectId);
+        log.info("Received GitHub webhook for project ID: {}. Payload is null? {}", projectId, (payload == null));
+        if (payload == null) {
+            log.warn("Payload is empty! Returning 200 to satisfy GitHub ping.");
+            return ResponseEntity.ok(new ApiResponse<>(true, "Empty payload ignored", null, Instant.now()));
+        }
         gitHubWebhookService.processPayload(projectId, signatureHeader, payload);
 
         ApiResponse<String> response = new ApiResponse<>(

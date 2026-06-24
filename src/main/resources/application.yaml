@@ -33,7 +33,25 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
 
+  mail:
+    host: ${SMTP_HOST:smtp.example.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:user}
+    password: ${SMTP_PASSWORD:secret}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 rabotyagaci:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
+  notification:
+    email:
+      enabled: ${EMAIL_NOTIFICATIONS_ENABLED:false}
+      from: ${EMAIL_NOTIFICATIONS_FROM:rabotyaga@example.com}
   runner:
     docker-host: unix:///var/run/docker.sock
     workspace-dir: /tmp/rabotyagaci/workspaces

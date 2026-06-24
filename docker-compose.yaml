@@ -31,6 +31,13 @@ services:
       - RABOTYAGACI_RUNNER_WORKSPACE_DIR=/tmp/rabotyagaci/workspaces
       - RABOTYAGACI_GIT_CLONE_DIR=/tmp/rabotyagaci/repos
       - RABOTYAGACI_ARTIFACTS_STORAGE_DIR=/var/rabotyagaci/artifacts
+      - SMTP_HOST=${MAIL_HOST}
+      - SMTP_PORT=${MAIL_PORT}
+      - SMTP_USERNAME=${MAIL_USERNAME}
+      - SMTP_PASSWORD=${MAIL_PASSWORD}
+      - EMAIL_NOTIFICATIONS_ENABLED=${EMAIL_NOTIFICATIONS_ENABLED:-true}
+      - EMAIL_NOTIFICATIONS_FROM=${EMAIL_NOTIFICATIONS_FROM:-noreply@mathalama.dev}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - app-data:/tmp/rabotyagaci

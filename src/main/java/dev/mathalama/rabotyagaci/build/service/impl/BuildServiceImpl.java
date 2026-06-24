@@ -71,6 +71,7 @@ public class BuildServiceImpl implements BuildService {
                 .project(project)
                 .branch(request.branch())
                 .commitSha(request.commitSha())
+                .authorEmail(request.authorEmail())
                 .triggerType(type)
                 .status(BuildStatus.PENDING)
                 .build();
@@ -114,6 +115,16 @@ public class BuildServiceImpl implements BuildService {
                     build.getCommitSha(),
                     build.getProject().getPipelineConfigPath()
             );
+
+            if (pipelineDef.notifications() != null && pipelineDef.notifications().email() != null) {
+                if (pipelineDef.notifications().email().onSuccess() != null) {
+                    build.setNotifyOnSuccess(String.join(",", pipelineDef.notifications().email().onSuccess()));
+                }
+                if (pipelineDef.notifications().email().onFailure() != null) {
+                    build.setNotifyOnFailure(String.join(",", pipelineDef.notifications().email().onFailure()));
+                }
+                buildRepository.save(build);
+            }
 
             Path workspaceDir = Path.of(workspaceDirParent).resolve("build-" + build.getId());
             log.info("Preparing workspace and cloning code into: {}", workspaceDir);

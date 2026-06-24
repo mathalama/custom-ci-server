@@ -7,5 +7,7 @@ public record TriggerBuildRequest(
         String branch,
 
         @NotBlank(message = "Commit SHA cannot be blank")
-        String commitSha
+        String commitSha,
+
+        String authorEmail
 ) {}

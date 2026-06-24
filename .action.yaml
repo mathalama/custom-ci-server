@@ -9,3 +9,12 @@ steps:
       - npm run build
     artifacts:
       - frontend/dist
+
+notifications:
+  email:
+    on_success:
+      - "ajkynsagyntaj@gmail.com"
+      - "author"
+    on_failure:
+      - "ajkynsagyntaj@gmail.com"
+      - "author"

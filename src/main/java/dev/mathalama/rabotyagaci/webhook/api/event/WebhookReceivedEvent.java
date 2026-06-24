@@ -10,5 +10,6 @@ public record WebhookReceivedEvent(
         String branch,
         String commitSha,
         String commitMessage,
+        String authorEmail,
         Instant receivedAt
 ) {}

@@ -8,5 +8,6 @@ import java.util.List;
 public record PipelineDefinition(
         int version,
         String name,
-        List<StepDefinition> steps
+        List<StepDefinition> steps,
+        NotificationsDefinition notifications
 ) {}

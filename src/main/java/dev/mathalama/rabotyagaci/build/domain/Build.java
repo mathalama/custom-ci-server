@@ -50,6 +50,15 @@ public class Build {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "author_email")
+    private String authorEmail;
+
+    @Column(name = "notify_on_success", length = 1000)
+    private String notifyOnSuccess;
+
+    @Column(name = "notify_on_failure", length = 1000)
+    private String notifyOnFailure;
+
     @Builder.Default
     @OneToMany(mappedBy = "build", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("stepOrder ASC")

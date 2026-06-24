@@ -44,7 +44,7 @@ public class WebhookEventListener {
         }
 
         log.info("Auto-triggering build for project {} on branch {}", project.getName(), event.branch());
-        TriggerBuildRequest triggerRequest = new TriggerBuildRequest(event.branch(), event.commitSha());
+        TriggerBuildRequest triggerRequest = new TriggerBuildRequest(event.branch(), event.commitSha(), event.authorEmail());
         buildService.trigger(project.getId(), triggerRequest, TriggerType.WEBHOOK);
     }
 }

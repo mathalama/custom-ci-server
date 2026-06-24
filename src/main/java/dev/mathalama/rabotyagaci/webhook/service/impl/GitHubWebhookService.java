@@ -72,17 +72,21 @@ public class GitHubWebhookService {
                 branch = ref.substring(11);
             }
 
-            // Extract commit message from head_commit
+            // Extract commit message and author email from head_commit
             String commitMessage = "";
+            String authorEmail = null;
             if (root.has("head_commit") && !root.get("head_commit").isNull()) {
                 JsonNode headCommit = root.get("head_commit");
                 if (headCommit.has("message")) {
                     commitMessage = headCommit.get("message").asText();
                 }
+                if (headCommit.has("author") && headCommit.get("author").has("email")) {
+                    authorEmail = headCommit.get("author").get("email").asText();
+                }
             }
 
-            log.info("Successfully parsed push webhook: branch={}, commitSha={}, commitMessage='{}'",
-                    branch, commitSha, commitMessage);
+            log.info("Successfully parsed push webhook: branch={}, commitSha={}, commitMessage='{}', authorEmail={}",
+                    branch, commitSha, commitMessage, authorEmail);
 
             // Publish WebhookReceivedEvent
             eventPublisher.publishEvent(new WebhookReceivedEvent(
@@ -90,6 +94,7 @@ public class GitHubWebhookService {
                     branch,
                     commitSha,
                     commitMessage,
+                    authorEmail,
                     Instant.now()
             ));
 
