@@ -135,6 +135,7 @@ public class DockerRunnerService {
                                     while ((line = reader.readLine()) != null) {
                                         String streamType = frame.getStreamType().name();
                                         eventPublisher.publishEvent(new LogChunkEvent(
+                                                event.buildId(),
                                                 event.stepId(),
                                                 streamType,
                                                 line,

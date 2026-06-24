@@ -66,6 +66,12 @@ export const getArtifacts = (buildId: number) =>
 export const getArtifactDownloadUrl = (buildId: number, artifactId: number) =>
   `/api/v1/builds/${buildId}/artifacts/${artifactId}/download`
 
+// ===== Logs =====
+export const getHistoricalLogs = (buildId: number, stepId: number, size = 1000) =>
+  api.get<ApiResponse<PagedResponse<any>>>(`/builds/${buildId}/steps/${stepId}/logs`, {
+    params: { size, sort: 'lineNumber,asc' }
+  })
+
 // ===== Logs SSE =====
 export const createLogStream = (
   buildId: number,

@@ -23,3 +23,4 @@ Modular monolith CI/CD system built using Spring Boot, Java 21, and Docker.
 To boot up the complete environment (PostgreSQL + RabotyagaCI App):
 ```bash
 docker compose up --build
+```

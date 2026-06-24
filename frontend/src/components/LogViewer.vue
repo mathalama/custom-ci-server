@@ -16,8 +16,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted, nextTick } from 'vue'
-import { createLogStream } from '@/api/client'
+import { ref, watch, nextTick } from 'vue'
+import { getHistoricalLogs } from '@/api/client'
 
 interface LogLine {
   stream: string
@@ -30,12 +30,12 @@ const props = defineProps<{
   buildId: number
   stepId: number
   isRunning: boolean
+  newLogLine?: any
 }>()
 
 const lines = ref<LogLine[]>([])
 const loading = ref(true)
 const logContainerRef = ref<HTMLElement | null>(null)
-let eventSource: EventSource | null = null
 
 const scrollToBottom = async () => {
   await nextTick()
@@ -44,37 +44,33 @@ const scrollToBottom = async () => {
   }
 }
 
-const startStream = () => {
-  if (eventSource) {
-    eventSource.close()
-  }
-
-  lines.value = []
+const loadHistory = async () => {
   loading.value = true
-
-  eventSource = createLogStream(
-    props.buildId,
-    props.stepId,
-    (data: LogLine) => {
-      loading.value = false
-      lines.value.push(data)
-      scrollToBottom()
-    },
-    () => {
-      loading.value = false
-    }
-  )
+  lines.value = []
+  try {
+    const res = await getHistoricalLogs(props.buildId, props.stepId)
+    lines.value = res.data.data.content
+    scrollToBottom()
+  } catch (e) {
+    console.error('Failed to load log history', e)
+  } finally {
+    loading.value = false
+  }
 }
 
 watch(
   () => props.stepId,
-  () => startStream(),
+  () => loadHistory(),
   { immediate: true }
 )
 
-onUnmounted(() => {
-  if (eventSource) {
-    eventSource.close()
+watch(
+  () => props.newLogLine,
+  (newLog) => {
+    if (newLog && newLog.stepId === props.stepId) {
+      lines.value.push(newLog)
+      scrollToBottom()
+    }
   }
-})
+)
 </script>

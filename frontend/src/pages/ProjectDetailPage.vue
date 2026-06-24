@@ -37,6 +37,22 @@
       </div>
     </div>
 
+    <!-- Status Badge -->
+    <div class="card" style="margin-bottom: 24px">
+      <h2 class="card-title">Статус-бейдж</h2>
+      <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="padding: 12px; background: var(--surface-default); border-radius: 6px; border: 1px solid var(--border);">
+          <img :src="`/api/v1/projects/${project.id}/badge`" alt="Build Status" />
+        </div>
+        <div style="flex-grow: 1;">
+          <p style="margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">Markdown код для вставки в README.md:</p>
+          <code style="display: block; width: 100%; box-sizing: border-box; word-break: break-all;">
+            [![Build Status]({{ windowOrigin }}/api/v1/projects/{{ project.id }}/badge)]({{ windowOrigin }}/projects/{{ project.id }})
+          </code>
+        </div>
+      </div>
+    </div>
+
     <!-- Secrets -->
     <div class="card" style="margin-bottom: 24px">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">
@@ -132,6 +148,7 @@ const showTriggerModal = ref(false)
 const triggerForm = ref({ branch: '', commitSha: '' })
 const showSecretModal = ref(false)
 const secretForm = ref({ name: '', value: '' })
+const windowOrigin = typeof window !== 'undefined' ? window.location.origin : ''
 
 onMounted(async () => {
   try {

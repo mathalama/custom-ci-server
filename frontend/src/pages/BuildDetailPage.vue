@@ -24,22 +24,19 @@
       </div>
     </div>
 
-    <div class="build-layout">
-      <!-- Left: Step timeline -->
-      <div class="card steps-panel">
-        <h3 class="card-title">Шаги</h3>
-        <StepTimeline
-          v-if="build.steps.length > 0"
-          :steps="build.steps"
-          :active-step-id="activeStepId"
-          @select="activeStepId = $event"
-        />
-        <div v-else class="empty-state">
-          <div class="empty-state-text">Шаги ещё не созданы</div>
-        </div>
+    <div style="margin-top: 24px;">
+      <!-- Top: Pipeline DAG -->
+      <PipelineGraph
+        v-if="build.steps.length > 0"
+        :steps="build.steps"
+        :active-step-id="activeStepId"
+        @select="activeStepId = $event"
+      />
+      <div v-else class="card empty-state" style="margin-bottom: 24px;">
+        <div class="empty-state-text">Шаги ещё не созданы</div>
       </div>
 
-      <!-- Right: Logs -->
+      <!-- Bottom: Logs -->
       <div class="logs-panel">
         <h3 class="card-title">Логи {{ activeStepName }}</h3>
         <LogViewer
@@ -47,6 +44,7 @@
           :build-id="build.id"
           :step-id="activeStepId"
           :is-running="activeStepStatus === 'RUNNING'"
+          :new-log-line="latestLogChunk"
         />
         <div v-else class="card empty-state">
           <div class="empty-state-text">Выберите шаг для просмотра логов</div>
@@ -77,9 +75,10 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getBuild, cancelBuild, getArtifacts, getArtifactDownloadUrl } from '@/api/client'
 import type { BuildResponse, BuildArtifact } from '@/types'
 import StatusBadge from '@/components/StatusBadge.vue'
-import StepTimeline from '@/components/StepTimeline.vue'
+import PipelineGraph from '@/components/PipelineGraph.vue'
 import LogViewer from '@/components/LogViewer.vue'
 import Icon from '@/components/Icon.vue'
+import { Client } from '@stomp/stompjs'
 
 const props = defineProps<{ id: string }>()
 
@@ -87,7 +86,8 @@ const build = ref<BuildResponse | null>(null)
 const artifacts = ref<BuildArtifact[]>([])
 const loading = ref(true)
 const activeStepId = ref<number | null>(null)
-let pollInterval: ReturnType<typeof setInterval> | null = null
+const latestLogChunk = ref<any>(null)
+let stompClient: Client | null = null
 
 const activeStepName = computed(() => {
   if (!activeStepId.value || !build.value) return ''
@@ -105,13 +105,11 @@ const loadBuild = async () => {
     const res = await getBuild(Number(props.id))
     build.value = res.data.data
 
-    // Auto-select first running or last step
     if (!activeStepId.value && build.value.steps.length > 0) {
       const running = build.value.steps.find((s: any) => s.status === 'RUNNING')
       activeStepId.value = running?.id || build.value.steps[0].id
     }
 
-    // Load artifacts
     const artRes = await getArtifacts(Number(props.id))
     artifacts.value = artRes.data.data
   } catch (e) {
@@ -121,18 +119,56 @@ const loadBuild = async () => {
   }
 }
 
-onMounted(() => {
-  loadBuild()
-  // Poll for updates while build is running
-  pollInterval = setInterval(async () => {
-    if (build.value && (build.value.status === 'RUNNING' || build.value.status === 'PENDING')) {
-      await loadBuild()
+const connectWebSocket = () => {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const host = window.location.hostname
+  const port = import.meta.env.DEV ? '8080' : window.location.port
+  const portStr = port ? `:${port}` : ''
+  const wsUrl = `${protocol}//${host}${portStr}/api/ws`
+
+  stompClient = new Client({
+    brokerURL: wsUrl,
+    reconnectDelay: 5000,
+    onConnect: () => {
+      console.log('Connected to STOMP via WebSocket')
+      
+      // Subscribe to step status updates
+      stompClient?.subscribe(`/topic/builds/${props.id}/steps`, (message) => {
+        const payload = JSON.parse(message.body)
+        if (build.value) {
+          const step = build.value.steps.find(s => s.id === payload.stepId)
+          if (step) {
+            step.status = payload.status
+            step.finishedAt = new Date().toISOString()
+          }
+          if (payload.status !== 'RUNNING') {
+            loadBuild()
+          }
+        }
+      })
+
+      // Subscribe to live logs
+      stompClient?.subscribe(`/topic/builds/${props.id}/logs`, (message) => {
+        const payload = JSON.parse(message.body)
+        latestLogChunk.value = payload
+      })
+    },
+    onStompError: (frame) => {
+      console.error('STOMP Error:', frame.headers['message'])
     }
-  }, 3000)
+  })
+  stompClient.activate()
+}
+
+onMounted(async () => {
+  await loadBuild()
+  connectWebSocket()
 })
 
 onUnmounted(() => {
-  if (pollInterval) clearInterval(pollInterval)
+  if (stompClient) {
+    stompClient.deactivate()
+  }
 })
 
 const handleCancel = async () => {
