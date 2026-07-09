@@ -92,5 +92,5 @@ management:
         include: "health,info"
   endpoint:
     health:
-      show-details: never
+      show-details: always
 
