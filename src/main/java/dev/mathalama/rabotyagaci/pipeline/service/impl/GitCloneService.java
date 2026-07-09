@@ -2,28 +2,50 @@ package dev.mathalama.rabotyagaci.pipeline.service.impl;
 
 import dev.mathalama.rabotyagaci.common.exception.BusinessException;
 import dev.mathalama.rabotyagaci.common.exception.ResourceNotFoundException;
+import dev.mathalama.rabotyagaci.project.domain.Project;
+import dev.mathalama.rabotyagaci.project.repository.ProjectRepository;
+import dev.mathalama.rabotyagaci.project.service.impl.GitHubIntegrationService;
+import dev.mathalama.rabotyagaci.project.service.impl.SecretCryptoService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.List;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class GitCloneService {
+
+    private final ProjectRepository projectRepository;
+    private final GitHubIntegrationService gitHubIntegrationService;
+    private final SecretCryptoService secretCryptoService;
 
     /**
      * Clones repository if it does not exist, or fetches updates if it does.
      */
     public void cloneOrPull(String repoUrl, Path targetDir) {
+        String token = resolveTokenForRepo(repoUrl);
+        UsernamePasswordCredentialsProvider credentialsProvider = null;
+        if (token != null && !token.isBlank()) {
+            credentialsProvider = new UsernamePasswordCredentialsProvider(token, "");
+        }
+
         if (Files.exists(targetDir)) {
             try {
                 try (Git git = Git.open(targetDir.toFile())) {
                     log.info("Fetching updates for repository: {}", repoUrl);
-                    git.fetch().call();
+                    var fetchCommand = git.fetch();
+                    if (credentialsProvider != null) {
+                        fetchCommand.setCredentialsProvider(credentialsProvider);
+                    }
+                    fetchCommand.call();
                 }
                 return;
             } catch (Exception e) {
@@ -35,16 +57,45 @@ public class GitCloneService {
         log.info("Cloning repository: {} into {}", repoUrl, targetDir);
         try {
             Files.createDirectories(targetDir);
-            try (Git git = Git.cloneRepository()
+            var cloneCommand = Git.cloneRepository()
                     .setURI(repoUrl)
                     .setDirectory(targetDir.toFile())
-                    .setCloneAllBranches(true)
-                    .call()) {
+                    .setCloneAllBranches(true);
+            if (credentialsProvider != null) {
+                cloneCommand.setCredentialsProvider(credentialsProvider);
+            }
+            try (Git git = cloneCommand.call()) {
                 log.info("Repository cloned successfully: {}", repoUrl);
             }
         } catch (Exception e) {
-            throw new BusinessException("Failed to clone repository: " + repoUrl, e);
+            throw new BusinessException("Failed to clone repository: " + repoUrl + ". Error: " + e.getMessage(), e);
         }
+    }
+
+    private String resolveTokenForRepo(String repoUrl) {
+        if (repoUrl == null) return null;
+        
+        // 1. Try to find a project with this repo URL
+        List<Project> projects = projectRepository.findAll();
+        for (Project p : projects) {
+            if (repoUrl.equalsIgnoreCase(p.getRepoUrl())) {
+                String pToken = p.getGithubToken();
+                if (pToken != null && !pToken.isBlank()) {
+                    try {
+                        return secretCryptoService.decrypt(pToken);
+                    } catch (Exception e) {
+                        log.error("Failed to decrypt token for project {}", p.getName(), e);
+                    }
+                }
+            }
+        }
+        
+        // 2. Fall back to global GitHub token if it is a GitHub repo
+        if (repoUrl.toLowerCase().contains("github.com")) {
+            return gitHubIntegrationService.getToken();
+        }
+        
+        return null;
     }
 
     /**

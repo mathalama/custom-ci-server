@@ -48,6 +48,7 @@ class DockerRunnerServiceTest {
 
         eventPublisher = mock(ApplicationEventPublisher.class);
         dockerRunnerService = new DockerRunnerService(dockerClient, runnerConfig, eventPublisher);
+        dockerRunnerService.init();
     }
 
     @Test

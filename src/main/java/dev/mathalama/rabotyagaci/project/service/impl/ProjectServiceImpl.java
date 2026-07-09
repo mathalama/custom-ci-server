@@ -26,6 +26,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectMapper projectMapper;
+    private final SecretCryptoService secretCryptoService;
 
     @Override
     public ProjectResponse create(CreateProjectRequest request) {
@@ -37,6 +38,11 @@ public class ProjectServiceImpl implements ProjectService {
 
         Project project = projectMapper.toEntity(request);
         project.setWebhookSecret(UUID.randomUUID().toString());
+
+        // Encrypt github token if provided
+        if (project.getGithubToken() != null && !project.getGithubToken().isBlank()) {
+            project.setGithubToken(secretCryptoService.encrypt(project.getGithubToken()));
+        }
 
         Project savedProject = projectRepository.save(project);
         log.info("Project created successfully with ID: {}", savedProject.getId());
@@ -74,6 +80,15 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         projectMapper.updateEntity(project, request);
+
+        // Encrypt GitHub token if it was updated in the request
+        if (request.githubToken() != null) {
+            if (request.githubToken().isBlank()) {
+                project.setGithubToken(null);
+            } else if (!request.githubToken().equals("********")) { // Prevent re-encrypting mask
+                project.setGithubToken(secretCryptoService.encrypt(request.githubToken()));
+            }
+        }
 
         Project updatedProject = projectRepository.save(project);
         log.info("Project with ID: {} updated successfully", id);

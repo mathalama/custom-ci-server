@@ -75,7 +75,7 @@ rabotyagaci:
     builds-days: 30
     cron: "0 0 4 * * *" # Every day at 4:00 AM
   auth:
-    enabled: false
+    enabled: true
     api-key: "super-secret-key-change-me"
   security:
     master-key: ${RABOTYAGACI_MASTER_KEY}
@@ -83,3 +83,14 @@ rabotyagaci:
     oauth:
       client-id: ${GITHUB_CLIENT_ID:}
       client-secret: ${GITHUB_CLIENT_SECRET:}
+  version: "0.1.0"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+  endpoint:
+    health:
+      show-details: never
+

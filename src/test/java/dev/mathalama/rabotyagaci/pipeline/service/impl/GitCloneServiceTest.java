@@ -12,9 +12,22 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import dev.mathalama.rabotyagaci.project.repository.ProjectRepository;
+import dev.mathalama.rabotyagaci.project.service.impl.GitHubIntegrationService;
+import dev.mathalama.rabotyagaci.project.service.impl.SecretCryptoService;
+import org.mockito.Mockito;
+
 class GitCloneServiceTest {
 
-    private final GitCloneService gitCloneService = new GitCloneService();
+    private final ProjectRepository projectRepository = Mockito.mock(ProjectRepository.class);
+    private final GitHubIntegrationService gitHubIntegrationService = Mockito.mock(GitHubIntegrationService.class);
+    private final SecretCryptoService secretCryptoService = Mockito.mock(SecretCryptoService.class);
+
+    private final GitCloneService gitCloneService = new GitCloneService(
+            projectRepository,
+            gitHubIntegrationService,
+            secretCryptoService
+    );
 
     @Test
     void testGitOperationsOffline(@TempDir Path originDir, @TempDir Path cloneDir) throws Exception {

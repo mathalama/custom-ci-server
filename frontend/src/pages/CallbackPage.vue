@@ -23,11 +23,25 @@ const statusText = ref('Пожалуйста, подождите, обменив
 const error = ref('')
 
 const goBack = () => {
-  router.push('/projects/new')
+  router.push('/settings')
 }
 
 onMounted(async () => {
   const code = route.query.code as string
+  const state = route.query.state as string
+  const savedState = sessionStorage.getItem('github_oauth_state')
+
+  // Clear state immediately in all cases to prevent reuse and avoid leaving stale state on mismatch
+  sessionStorage.removeItem('github_oauth_state')
+
+  // CSRF validation
+  if (!state || state !== savedState) {
+    console.error('CSRF State mismatch!', { state, savedState })
+    error.value = 'Ошибка безопасности: несовпадение проверочного кода CSRF (State mismatch). Попробуйте заново.'
+    statusText.value = 'Ошибка безопасности'
+    return
+  }
+
   if (!code) {
     error.value = 'Код авторизации не найден в URL. Попробуйте войти заново.'
     statusText.value = 'Ошибка авторизации'
@@ -36,19 +50,18 @@ onMounted(async () => {
 
   try {
     const res = await exchangeGithubCode(code)
-    if (res.data.success && res.data.data?.accessToken) {
-      localStorage.setItem('github_oauth_token', res.data.data.accessToken)
+    if (res.data.success && res.data.data?.status === 'connected') {
       statusText.value = 'Успешно авторизовано! Перенаправление...'
       setTimeout(() => {
-        router.push('/projects/new')
+        router.push('/settings')
       }, 1000)
     } else {
-      error.value = res.data.error || 'Не удалось получить токен доступа.'
-      statusText.value = 'Ошибка обмена токена'
+      error.value = res.data.error || 'Не удалось завершить подключение аккаунта.'
+      statusText.value = 'Ошибка при подключении'
     }
   } catch (err: any) {
     console.error('OAuth callback error', err)
-    error.value = err.response?.data?.error || 'Сетевая ошибка при обмене токена.'
+    error.value = err.response?.data?.error || 'Сетевая ошибка при обмене кода на сервере.'
     statusText.value = 'Ошибка запроса'
   }
 })

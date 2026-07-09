@@ -100,4 +100,27 @@ export const getGithubOauthConfig = () =>
   api.get<ApiResponse<{ clientId: string }>>('/auth/github/config')
 
 export const exchangeGithubCode = (code: string) =>
-  api.post<ApiResponse<{ accessToken: string }>>('/auth/github/callback', { code })
+  api.post<ApiResponse<{ status: string }>>('/auth/github/callback', { code })
+
+export const getGithubOauthStatus = () =>
+  api.get<ApiResponse<{ connected: boolean }>>('/auth/github/status')
+
+export const disconnectGithubOauth = () =>
+  api.delete<ApiResponse<void>>('/auth/github/disconnect')
+
+export const getGithubProfile = () =>
+  api.get<ApiResponse<any>>('/auth/github/profile')
+
+export const getGithubUserRepos = () =>
+  api.get<ApiResponse<any>>('/auth/github/repos')
+
+export const getGithubRepoBranches = (owner: string, repo: string) =>
+  api.get<ApiResponse<any>>(`/auth/github/repos/${owner}/${repo}/branches`)
+
+export const getGithubRepoContents = (owner: string, repo: string, ref?: string) =>
+  api.get<ApiResponse<any>>(`/auth/github/repos/${owner}/${repo}/contents${ref ? '?ref=' + ref : ''}`)
+
+// ===== System Info =====
+export const getSystemInfo = () =>
+  api.get<ApiResponse<{ version: string; status: string }>>('/system/info')
+

@@ -37,10 +37,12 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
         String uri = request.getRequestURI();
 
-        // Bypass security for webhooks, actuator health check, and GitHub OAuth endpoints
+        // Bypass security for webhooks (requires wildcard), callback, config, health, and system info
         if (pathMatcher.match("/api/v1/webhooks/**", uri) 
-                || pathMatcher.match("/api/v1/auth/github/**", uri) 
-                || pathMatcher.match("/actuator/**", uri)) {
+                || "/api/v1/auth/github/config".equals(uri)
+                || "/api/v1/auth/github/callback".equals(uri)
+                || "/api/v1/system/info".equals(uri)
+                || "/actuator/health".equals(uri)) {
             filterChain.doFilter(request, response);
             return;
         }

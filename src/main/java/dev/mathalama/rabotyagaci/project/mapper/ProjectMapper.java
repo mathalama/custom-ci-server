@@ -17,6 +17,7 @@ public interface ProjectMapper {
     Project toEntity(CreateProjectRequest request);
 
     @Mapping(source = "active", target = "isActive")
+    @Mapping(target = "githubToken", expression = "java(entity.getGithubToken() != null && !entity.getGithubToken().isBlank() ? \"********\" : null)")
     ProjectResponse toResponse(Project entity);
 
     @Mapping(target = "id", ignore = true)

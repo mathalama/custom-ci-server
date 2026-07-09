@@ -6,6 +6,8 @@ import dev.mathalama.rabotyagaci.build.domain.Build;
 import dev.mathalama.rabotyagaci.build.domain.BuildStatus;
 import dev.mathalama.rabotyagaci.build.repository.BuildRepository;
 import dev.mathalama.rabotyagaci.project.domain.Project;
+import dev.mathalama.rabotyagaci.project.service.impl.GitHubIntegrationService;
+import dev.mathalama.rabotyagaci.project.service.impl.SecretCryptoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,8 @@ public class GitHubStatusEventListener {
 
     private final BuildRepository buildRepository;
     private final GitHubStatusService gitHubStatusService;
+    private final GitHubIntegrationService gitHubIntegrationService;
+    private final SecretCryptoService secretCryptoService;
 
     @Value("${rabotyagaci.frontend.url:http://localhost:3001}")
     private String frontendUrl;
@@ -62,7 +66,18 @@ public class GitHubStatusEventListener {
         String token = project.getGithubToken();
         
         if (token == null || token.isBlank()) {
-            return; // No token configured for this project
+            token = gitHubIntegrationService.getToken();
+        } else {
+            try {
+                token = secretCryptoService.decrypt(token);
+            } catch (Exception e) {
+                log.error("Failed to decrypt project token for status update. Trying to fallback to global token.", e);
+                token = gitHubIntegrationService.getToken();
+            }
+        }
+        
+        if (token == null || token.isBlank()) {
+            return; // No token configured
         }
 
         String targetUrl = frontendUrl + "/builds/" + buildId;

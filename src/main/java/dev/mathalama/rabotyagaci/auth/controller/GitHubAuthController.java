@@ -1,19 +1,18 @@
 package dev.mathalama.rabotyagaci.auth.controller;
 
 import dev.mathalama.rabotyagaci.common.api.dto.ApiResponse;
+import dev.mathalama.rabotyagaci.project.service.impl.GitHubIntegrationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -31,6 +30,7 @@ public class GitHubAuthController {
     @Value("${rabotyagaci.github.oauth.client-secret:}")
     private String clientSecret;
 
+    private final GitHubIntegrationService gitHubIntegrationService;
     private final RestTemplate restTemplate = new RestTemplate();
 
     @GetMapping("/config")
@@ -80,8 +80,10 @@ public class GitHubAuthController {
 
                 String accessToken = (String) body.get("access_token");
                 if (accessToken != null) {
+                    gitHubIntegrationService.saveToken(accessToken);
+                    
                     Map<String, String> data = new HashMap<>();
-                    data.put("accessToken", accessToken);
+                    data.put("status", "connected");
                     return ResponseEntity.ok(ApiResponse.ok(data));
                 }
             }
@@ -92,6 +94,73 @@ public class GitHubAuthController {
             log.error("Error during GitHub OAuth token exchange", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.fail("Internal server error during OAuth exchange: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<ApiResponse<Map<String, Boolean>>> getStatus() {
+        Map<String, Boolean> data = new HashMap<>();
+        data.put("connected", gitHubIntegrationService.isConnected());
+        return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
+    @DeleteMapping("/disconnect")
+    public ResponseEntity<ApiResponse<Void>> disconnect() {
+        gitHubIntegrationService.disconnect();
+        return ResponseEntity.ok(ApiResponse.ok());
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<Object>> getProfile() {
+        return proxyGitHubGet("https://api.github.com/user");
+    }
+
+    @GetMapping("/repos")
+    public ResponseEntity<ApiResponse<Object>> getRepos() {
+        return proxyGitHubGet("https://api.github.com/user/repos?per_page=100&sort=updated");
+    }
+
+    @GetMapping("/repos/{owner}/{repo}/branches")
+    public ResponseEntity<ApiResponse<Object>> getBranches(@PathVariable String owner, @PathVariable String repo) {
+        return proxyGitHubGet("https://api.github.com/repos/" + owner + "/" + repo + "/branches?per_page=100");
+    }
+
+    @GetMapping("/repos/{owner}/{repo}/contents")
+    public ResponseEntity<ApiResponse<Object>> getContents(
+            @PathVariable String owner, 
+            @PathVariable String repo,
+            @RequestParam(required = false) String ref) {
+        String url = "https://api.github.com/repos/" + owner + "/" + repo + "/contents";
+        if (ref != null && !ref.isBlank()) {
+            url += "?ref=" + ref;
+        }
+        return proxyGitHubGet(url);
+    }
+
+    private ResponseEntity<ApiResponse<Object>> proxyGitHubGet(String url) {
+        String token = gitHubIntegrationService.getToken();
+        if (token == null || token.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail("GitHub integration is not connected"));
+        }
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + token);
+            headers.set("Accept", "application/vnd.github+json");
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
+            return ResponseEntity.ok(ApiResponse.ok(response.getBody()));
+        } catch (HttpClientErrorException.Unauthorized e) {
+            log.warn("GitHub API returned 401 Unauthorized, disconnecting token: {}", e.getMessage());
+            gitHubIntegrationService.disconnect();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail("GitHub session expired, please reconnect your account."));
+        } catch (Exception e) {
+            log.error("Error proxying request to GitHub API (URL: {})", url, e);
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(ApiResponse.fail("Error calling GitHub API: " + e.getMessage()));
         }
     }
 

@@ -17,6 +17,10 @@
           <Icon name="folder" :size="18" />
           <span>Проекты</span>
         </router-link>
+        <router-link to="/settings" class="nav-item" active-class="active">
+          <Icon name="gear" :size="18" />
+          <span>Настройки</span>
+        </router-link>
       </nav>
       <div class="sidebar-footer">
         <div class="version">v0.1.0</div>
