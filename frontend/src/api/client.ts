@@ -102,9 +102,6 @@ export const getGithubOauthConfig = () =>
 export const exchangeGithubCode = (code: string) =>
   api.post<ApiResponse<{ status: string }>>('/auth/github/callback', { code })
 
-export const saveManualGithubToken = (token: string) =>
-  api.post<ApiResponse<{ status: string }>>('/auth/github/token', { token })
-
 export const getGithubOauthStatus = () =>
   api.get<ApiResponse<{ connected: boolean }>>('/auth/github/status')
 

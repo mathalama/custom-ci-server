@@ -50,51 +50,19 @@
           <p class="connect-desc">
             Подключите вашу учетную запись GitHub, чтобы выбирать репозитории и ветки прямо из интерфейса RabotyagaCI при создании новых проектов.
           </p>
-          
-          <div v-if="oAuthClientId === ''" class="info-box-warning" style="margin-bottom: 12px; padding: 12px; font-size: 13px; color: var(--text-secondary); background: var(--surface-hover); border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; line-height: 1.4;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-secondary); flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-            GitHub OAuth не настроен на сервере. Укажите GITHUB_CLIENT_ID и GITHUB_CLIENT_SECRET в конфигурации.
-          </div>
-
           <button 
-            v-if="oAuthClientId"
             type="button" 
             class="btn btn-primary" 
             @click="initiateOAuth"
-            :disabled="oAuthClientId === null"
-            style="width: 100%; justify-content: center; padding: 12px; margin-bottom: 16px;"
+            :disabled="!oAuthClientId"
+            style="width: 100%; justify-content: center; padding: 12px;"
           >
-            <span v-if="oAuthClientId === null" style="display: flex; align-items: center; gap: 8px;">
+            <span v-if="!oAuthClientId" style="display: flex; align-items: center; gap: 8px;">
               <span class="spinner" style="width: 16px; height: 16px; border-width: 2px; border-top-color: #ffffff;"></span>
               Загрузка конфигурации...
             </span>
-            <span v-else>Подключить через OAuth</span>
+            <span v-else>Подключить GitHub аккаунт</span>
           </button>
-
-          <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 4px;">
-            <label style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">ИЛИ ПОДКЛЮЧИТЬ ВРУЧНУЮ ЧЕРЕЗ ТОКЕН ДОСТУПА (PAT):</label>
-            <div style="display: flex; gap: 8px; width: 100%;">
-              <input 
-                v-model="manualToken" 
-                type="password" 
-                class="form-input" 
-                placeholder="github_pat_..." 
-                style="flex: 1; font-size: 13px; padding: 8px 12px;"
-              />
-              <button 
-                type="button" 
-                class="btn btn-primary" 
-                @click="submitManualToken"
-                :disabled="!manualToken"
-                style="font-size: 13px; font-weight: 600; padding: 8px 16px;"
-              >
-                Сохранить
-              </button>
-            </div>
-            <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin-top: 2px;">
-              Токен должен иметь права доступа <code style="font-family: monospace; background: var(--surface-hover); padding: 1px 4px; border-radius: 4px; font-size: 11px;">repo</code> для работы с репозиториями.
-            </div>
-          </div>
         </div>
 
         <div v-if="error" class="error-message">{{ error }}</div>
@@ -147,15 +115,13 @@ import {
   getGithubOauthStatus, 
   disconnectGithubOauth, 
   getGithubProfile,
-  getSystemInfo,
-  saveManualGithubToken
+  getSystemInfo
 } from '@/api/client'
 import Icon from '@/components/Icon.vue'
 
 const error = ref('')
-const oAuthClientId = ref<string | null>(null)
+const oAuthClientId = ref('')
 const oAuthConnected = ref(false)
-const manualToken = ref('')
 
 const gitHubUser = ref<any>(null)
 const userLoading = ref(false)
@@ -163,25 +129,6 @@ const userLoading = ref(false)
 const systemVersion = ref('')
 const backendConnected = ref(false)
 const dbHealthy = ref(false)
-
-const submitManualToken = async () => {
-  if (!manualToken.value.trim()) return
-  error.value = ''
-  userLoading.value = true
-  try {
-    const res = await saveManualGithubToken(manualToken.value.trim())
-    if (res.data.success) {
-      oAuthConnected.value = true
-      manualToken.value = ''
-      await fetchGitHubUser()
-    }
-  } catch (err: any) {
-    console.error("Failed to save manual GitHub token", err)
-    error.value = err.response?.data?.error || "Не удалось сохранить токен."
-  } finally {
-    userLoading.value = false
-  }
-}
 
 const fetchGitHubUser = async () => {
   userLoading.value = true
