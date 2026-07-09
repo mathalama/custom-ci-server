@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="max-width: 1080px; margin: 0 auto; width: 100%;">
     <div class="page-header">
       <h1 class="page-title">Настройки</h1>
       <p class="page-subtitle">Управление интеграциями и системными параметрами RabotyagaCI</p>
@@ -101,6 +101,31 @@
           <p>
             RabotyagaCI — это легковесный, производительный CI/CD сервер, спроектированный для сборки проектов в изолированных Docker-контейнерах с поддержкой кэширования шагов и уведомлений.
           </p>
+        </div>
+      </div>
+
+      <!-- 3. Documentation Bento Card -->
+      <div class="card docs-card" style="display: flex; flex-direction: column; gap: 16px;">
+        <h2 class="card-title" style="display: flex; align-items: center; gap: 10px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open" style="flex-shrink: 0;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Документация и API
+        </h2>
+        <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+          Используйте встроенные эндпоинты мониторинга и документации для интеграции RabotyagaCI с внешними системами:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;">
+          <a href="/actuator/health" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text-primary); font-size: 13px; font-weight: 600; transition: border-color 0.15s, transform 0.15s;" class="docs-link">
+            <span>Health Check API</span>
+            <code style="font-family: monospace; font-size: 11px; color: var(--accent);">/actuator/health</code>
+          </a>
+          <a href="/api/v1/system/info" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text-primary); font-size: 13px; font-weight: 600; transition: border-color 0.15s, transform 0.15s;" class="docs-link">
+            <span>System Info API</span>
+            <code style="font-family: monospace; font-size: 11px; color: var(--accent);">/api/v1/system/info</code>
+          </a>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px;">
+          <strong>Папка репозиториев:</strong>
+          <code style="font-family: monospace; font-size: 11.5px; display: block; margin-top: 4px; padding: 6px 10px; background: var(--surface-hover); border-radius: 4px; border: 1px solid var(--border); overflow-x: auto; color: var(--text-secondary);">/tmp/rabotyagaci/repos</code>
         </div>
       </div>
     </div>
@@ -230,15 +255,9 @@ onMounted(async () => {
 <style scoped>
 .bento-grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 24px;
   align-items: start;
-}
-
-@media (max-width: 768px) {
-  .bento-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .github-card, .system-card {

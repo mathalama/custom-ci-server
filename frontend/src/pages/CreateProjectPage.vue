@@ -1,7 +1,12 @@
 <template>
   <div>
-    <div class="page-header">
-      <h1 class="page-title">Новый проект</h1>
+    <div class="breadcrumbs" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+      <router-link to="/projects" style="color: var(--text-secondary); text-decoration: none; transition: color 0.15s; font-weight: 500;">Проекты</router-link>
+      <span style="color: var(--text-muted);">/</span>
+      <span style="color: var(--text-primary); font-weight: 600;">Новый проект</span>
+    </div>
+    <div class="page-header" style="margin-bottom: 24px;">
+      <h1 class="page-title" style="font-size: 28px; margin: 0;">Новый проект</h1>
     </div>
 
     <!-- 1. NOT AUTHORIZED STATE -->
@@ -40,7 +45,7 @@
           <span style="font-size: 13.5px; font-weight: 600; color: var(--text-secondary);">GitHub подключен</span>
         </div>
         <button type="button" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px; font-weight: 600;" @click="logoutOAuth">
-          Отключить
+          Отвязать аккаунт
         </button>
       </div>
 
@@ -147,6 +152,15 @@
               {{ branch.name }}
             </option>
           </select>
+
+          <!-- Prod/production branch warning banner -->
+          <div v-if="isProdBranchSelected" class="info-box-danger" style="margin-top: 10px; padding: 10px 14px; font-size: 13px; color: var(--failure); background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 8px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--failure); flex-shrink: 0; margin-top: 2px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div>
+              <span style="font-weight: 600;">Внимание: выбрана продакшн-ветка.</span>
+              Сборка коммитов в этой ветке может запустить деплой. Убедитесь в безопасности конфигурации пайплайна.
+            </div>
+          </div>
         </div>
 
         <!-- 2.4 Pipeline config file picker -->
@@ -263,6 +277,11 @@ const form = ref<CreateProjectRequest>({
 const validationErrors = ref({
   name: '',
   repoUrl: ''
+})
+
+const isProdBranchSelected = computed(() => {
+  const b = form.value.defaultBranch?.toLowerCase() || ''
+  return b === 'prod' || b === 'production' || b === 'master' || b === 'main'
 })
 
 const checkConnectionStatus = async () => {
