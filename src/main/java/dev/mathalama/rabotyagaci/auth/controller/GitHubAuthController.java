@@ -97,12 +97,25 @@ public class GitHubAuthController {
         }
     }
 
+    @PostMapping("/token")
+    public ResponseEntity<ApiResponse<Map<String, String>>> saveManualToken(@RequestBody ManualTokenRequest request) {
+        if (request.token() == null || request.token().isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("Token must not be empty"));
+        }
+        gitHubIntegrationService.saveToken(request.token());
+        Map<String, String> data = new HashMap<>();
+        data.put("status", "connected");
+        return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
     @GetMapping("/status")
     public ResponseEntity<ApiResponse<Map<String, Boolean>>> getStatus() {
         Map<String, Boolean> data = new HashMap<>();
         data.put("connected", gitHubIntegrationService.isConnected());
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
+
+    public record ManualTokenRequest(String token) {}
 
     @DeleteMapping("/disconnect")
     public ResponseEntity<ApiResponse<Void>> disconnect() {

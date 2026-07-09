@@ -14,14 +14,20 @@
         Подключите ваш GitHub аккаунт, чтобы просмотреть список доступных репозиториев, выбрать ветки сборки и автоматически найти конфигурационные файлы пайплайна.
       </p>
       
+      <div v-if="oAuthClientId === ''" class="info-box-warning" style="margin-top: 16px; padding: 12px 16px; font-size: 13.5px; color: var(--text-secondary); background: var(--surface-hover); border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; max-width: 440px; line-height: 1.4; text-align: left;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-secondary); flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        GitHub OAuth не настроен на сервере. Укажите GITHUB_CLIENT_ID и GITHUB_CLIENT_SECRET в конфигурации.
+      </div>
+      
       <button 
+        v-else
         type="button" 
         class="btn btn-primary" 
         style="padding: 12px 28px; font-size: 15px; font-weight: 600;" 
         @click="initiateOAuth"
-        :disabled="!oAuthClientId"
+        :disabled="oAuthClientId === null"
       >
-        <span v-if="!oAuthClientId" style="display: flex; align-items: center; gap: 8px;">
+        <span v-if="oAuthClientId === null" style="display: flex; align-items: center; gap: 8px;">
           <span class="spinner" style="width: 16px; height: 16px; border-width: 2px; border-top-color: #ffffff;"></span>
           Загрузка конфигурации...
         </span>
@@ -219,7 +225,7 @@ const router = useRouter()
 const error = ref('')
 const submitting = ref(false)
 
-const oAuthClientId = ref('')
+const oAuthClientId = ref<string | null>(null)
 const oAuthConnected = ref(false)
 
 interface GitHubRepo {
