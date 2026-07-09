@@ -39,6 +39,8 @@ services:
       - EMAIL_NOTIFICATIONS_FROM=${EMAIL_NOTIFICATIONS_FROM:-noreply@mathalama.dev}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3001}
       - RABOTYAGACI_MASTER_KEY=${RABOTYAGACI_MASTER_KEY}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - app-data:/tmp/rabotyagaci
