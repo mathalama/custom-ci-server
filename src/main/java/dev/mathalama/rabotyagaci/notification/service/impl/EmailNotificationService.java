@@ -36,7 +36,7 @@ public class EmailNotificationService implements NotificationService {
     @Value("${rabotyagaci.notification.email.from:}")
     private String emailFrom;
 
-    @Value("${rabotyagaci.frontend.url:http://localhost:3000}")
+    @Value("${rabotyagaci.frontend.url:http://localhost:3001}")
     private String frontendUrl;
 
     @Override

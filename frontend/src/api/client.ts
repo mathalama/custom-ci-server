@@ -94,3 +94,10 @@ export const createLogStream = (
 
   return eventSource
 }
+
+// ===== OAuth =====
+export const getGithubOauthConfig = () =>
+  api.get<ApiResponse<{ clientId: string }>>('/auth/github/config')
+
+export const exchangeGithubCode = (code: string) =>
+  api.post<ApiResponse<{ accessToken: string }>>('/auth/github/callback', { code })

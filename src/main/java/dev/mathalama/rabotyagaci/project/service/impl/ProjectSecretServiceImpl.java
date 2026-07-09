@@ -25,6 +25,7 @@ public class ProjectSecretServiceImpl implements ProjectSecretService {
 
     private final ProjectSecretRepository projectSecretRepository;
     private final ProjectRepository projectRepository;
+    private final SecretCryptoService secretCryptoService;
 
     @Override
     @Transactional(readOnly = true)
@@ -46,7 +47,7 @@ public class ProjectSecretServiceImpl implements ProjectSecretService {
         ProjectSecret secret = ProjectSecret.builder()
                 .project(project)
                 .name(request.name())
-                .value(request.value())
+                .value(secretCryptoService.encrypt(request.value()))
                 .build();
 
         ProjectSecret savedSecret = projectSecretRepository.save(secret);

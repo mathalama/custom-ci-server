@@ -1,5 +1,7 @@
 package dev.mathalama.rabotyagaci.websocket;
 
+import dev.mathalama.rabotyagaci.build.api.event.BuildCompletedEvent;
+import dev.mathalama.rabotyagaci.build.api.event.BuildStepStartedEvent;
 import dev.mathalama.rabotyagaci.runner.api.event.BuildStepCompletedEvent;
 import dev.mathalama.rabotyagaci.runner.api.event.LogChunkEvent;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,23 @@ public class WebSocketEventPublisher {
         );
     }
 
+    @EventListener
+    public void handleBuildStepStartedEvent(BuildStepStartedEvent event) {
+        messagingTemplate.convertAndSend(
+                "/topic/builds/" + event.buildId() + "/steps",
+                new WsStepPayload(event.stepId(), "RUNNING", null)
+        );
+    }
+
+    @EventListener
+    public void handleBuildCompletedEvent(BuildCompletedEvent event) {
+        messagingTemplate.convertAndSend(
+                "/topic/builds/" + event.buildId(),
+                new WsBuildPayload(event.buildId(), event.status().name())
+        );
+    }
+
     public record WsLogPayload(Long stepId, String stream, String content, int lineNumber, String timestamp) {}
-    public record WsStepPayload(Long stepId, String status, int exitCode) {}
+    public record WsStepPayload(Long stepId, String status, Integer exitCode) {}
+    public record WsBuildPayload(Long buildId, String status) {}
 }

@@ -41,6 +41,12 @@ public class DockerRunnerService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final java.util.concurrent.ConcurrentHashMap<Long, String> activeContainers = new java.util.concurrent.ConcurrentHashMap<>();
+    private java.util.concurrent.Semaphore buildSemaphore;
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        buildSemaphore = new java.util.concurrent.Semaphore(runnerConfig.getMaxConcurrentBuilds());
+    }
 
     @EventListener
     public void handleBuildCancelled(BuildCancelledEvent event) {
@@ -58,8 +64,16 @@ public class DockerRunnerService {
     @Async
     @EventListener
     public void handleBuildStepStarted(BuildStepStartedEvent event) {
-        log.info("Received BuildStepStartedEvent for build ID: {}, step ID: {}, step name: {}",
-                event.buildId(), event.stepId(), event.stepName());
+        log.info("Received request to start step: {} for build ID: {}", event.stepName(), event.buildId());
+        
+        try {
+            buildSemaphore.acquire();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Thread interrupted while waiting for build slot for build {}", event.buildId());
+            eventPublisher.publishEvent(new BuildStepCompletedEvent(event.buildId(), event.stepId(), StepStatus.FAILURE, -1, Instant.now()));
+            return;
+        }
 
         String containerId = null;
         ResultCallback.Adapter<Frame> logCallback = null;
@@ -89,8 +103,8 @@ public class DockerRunnerService {
                     .withNetworkMode(runnerConfig.getNetworkMode());
 
             // 5. Build commands shell script
-            // Map the backend's internal path (/tmp/rabotyagaci/...) to the container's mounted volume path (/app-data/...)
-            String containerWorkingDir = event.workspaceDir().toString().replace("/tmp/rabotyagaci", "/app-data").replace("\\", "/");
+            // Map the backend's internal path to the container's mounted volume path
+            String containerWorkingDir = "/app-data/workspaces/" + event.workspaceDir().getFileName().toString();
             String commandScript = "set -e\ncd " + containerWorkingDir + "\n" + String.join("\n", event.commands());
 
             log.info("Creating container for step {} with image {}. Volume: {}, workingDir: {}",
@@ -180,30 +194,22 @@ public class DockerRunnerService {
             // Close log streaming adapters
             if (logCallback != null) {
                 try {
-                    logCallback.awaitCompletion(3, TimeUnit.SECONDS);
                     logCallback.close();
-                } catch (Exception e) {
-                    log.error("Failed to close container log callback", e);
-                }
+                } catch (Exception ignored) {}
             }
 
             // Cleanup container
             if (containerId != null) {
-                activeContainers.remove(event.buildId());
                 try {
-                    log.info("Stopping container: {}", containerId);
-                    dockerClient.stopContainerCmd(containerId).exec();
-                } catch (Exception e) {
-                    log.debug("Container already stopped or failed to stop: {}", e.getMessage());
-                }
-
-                try {
-                    log.info("Removing container: {}", containerId);
                     dockerClient.removeContainerCmd(containerId).withForce(true).exec();
+                    log.info("Container {} removed", containerId);
                 } catch (Exception e) {
-                    log.error("Failed to remove container: {}", containerId, e);
+                    log.warn("Failed to remove container {}", containerId, e);
                 }
+                activeContainers.remove(event.buildId());
             }
+
+            buildSemaphore.release();
 
             // Publish BuildStepCompletedEvent
             log.info("Publishing BuildStepCompletedEvent for step ID: {}, status: {}, exitCode: {}",

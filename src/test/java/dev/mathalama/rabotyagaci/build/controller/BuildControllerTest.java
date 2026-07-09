@@ -43,7 +43,7 @@ class BuildControllerTest {
     @Test
     void trigger_ShouldReturn201_WhenValidRequest() throws Exception {
         Long projectId = 1L;
-        TriggerBuildRequest request = new TriggerBuildRequest("main", "sha-hash");
+        TriggerBuildRequest request = new TriggerBuildRequest("main", "sha-hash", "author@example.com");
         BuildResponse response = new BuildResponse(100L, projectId, "sha-hash", "main", TriggerType.MANUAL, BuildStatus.PENDING, null, null, Instant.now(), List.of());
 
         when(buildService.trigger(eq(projectId), any(TriggerBuildRequest.class), eq(TriggerType.MANUAL))).thenReturn(response);
@@ -60,7 +60,7 @@ class BuildControllerTest {
     @Test
     void trigger_ShouldReturn400_WhenInvalidRequest() throws Exception {
         Long projectId = 1L;
-        TriggerBuildRequest request = new TriggerBuildRequest("", "");
+        TriggerBuildRequest request = new TriggerBuildRequest("", "", "author@example.com");
 
         mockMvc.perform(post("/api/v1/projects/{projectId}/trigger", projectId)
                         .contentType(MediaType.APPLICATION_JSON)

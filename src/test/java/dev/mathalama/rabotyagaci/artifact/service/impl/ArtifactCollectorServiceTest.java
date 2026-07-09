@@ -90,7 +90,9 @@ class ArtifactCollectorServiceTest {
         PipelineDefinition pipelineDef = new PipelineDefinition(
                 1,
                 "Test Pipeline",
-                List.of(new StepDefinition("Build", "maven", List.of("mvn package"), List.of("target/*.jar")))
+                List.of(new StepDefinition("Build", "maven", List.of("mvn package"), List.of("target/*.jar"))),
+                null,
+                null
         );
 
         when(buildRepository.findById(5L)).thenReturn(Optional.of(testBuild));

@@ -27,8 +27,13 @@ const router = createRouter({
     {
       path: '/builds/:id',
       name: 'build-detail',
-      component: () => import('@/pages/BuildDetailPage.vue'),
+      component: () => import('@/views/BuildView.vue'),
       props: true,
+    },
+    {
+      path: '/callback',
+      name: 'oauth-callback',
+      component: () => import('@/pages/CallbackPage.vue'),
     },
   ],
 })

@@ -49,6 +49,7 @@ class WebhookEventListenerTest {
                 "main",
                 "6113728f27ae82c3b1e177c8d37d402b743f6351",
                 "commit-msg",
+                "author@example.com",
                 Instant.now()
         );
 
@@ -58,7 +59,7 @@ class WebhookEventListenerTest {
 
         verify(buildService, times(1)).trigger(
                 eq(1L),
-                refEq(new TriggerBuildRequest("main", "6113728f27ae82c3b1e177c8d37d402b743f6351")),
+                refEq(new TriggerBuildRequest("main", "6113728f27ae82c3b1e177c8d37d402b743f6351", "author@example.com")),
                 eq(TriggerType.WEBHOOK)
         );
     }
@@ -70,6 +71,7 @@ class WebhookEventListenerTest {
                 "feature-branch",
                 "6113728f27ae82c3b1e177c8d37d402b743f6351",
                 "commit-msg",
+                "author@example.com",
                 Instant.now()
         );
 
@@ -88,6 +90,7 @@ class WebhookEventListenerTest {
                 "main",
                 "6113728f27ae82c3b1e177c8d37d402b743f6351",
                 "commit-msg",
+                "author@example.com",
                 Instant.now()
         );
 
@@ -105,6 +108,7 @@ class WebhookEventListenerTest {
                 "main",
                 "6113728f27ae82c3b1e177c8d37d402b743f6351",
                 "commit-msg",
+                "author@example.com",
                 Instant.now()
         );
 

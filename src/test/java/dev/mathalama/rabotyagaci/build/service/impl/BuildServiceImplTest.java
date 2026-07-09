@@ -54,6 +54,10 @@ class BuildServiceImplTest {
     private BuildMapper buildMapper;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private BuildCacheService buildCacheService;
+    @Mock
+    private dev.mathalama.rabotyagaci.pipeline.service.impl.GitCloneService gitCloneService;
 
     @InjectMocks
     private BuildServiceImpl buildService;
@@ -66,7 +70,7 @@ class BuildServiceImplTest {
     @Test
     void trigger_ShouldCreateBuildAndStartAsyncExecution() {
         Long projectId = 1L;
-        TriggerBuildRequest request = new TriggerBuildRequest("main", "sha-hash");
+        TriggerBuildRequest request = new TriggerBuildRequest("main", "sha-hash", "author@example.com");
         Project project = Project.builder().id(projectId).name("my-project").isActive(true).build();
         Build build = Build.builder().id(100L).project(project).branch("main").commitSha("sha-hash").triggerType(TriggerType.MANUAL).status(BuildStatus.PENDING).createdAt(Instant.now()).build();
 
@@ -82,7 +86,7 @@ class BuildServiceImplTest {
     @Test
     void trigger_ShouldThrowException_WhenProjectInactive() {
         Long projectId = 1L;
-        TriggerBuildRequest request = new TriggerBuildRequest("main", "sha-hash");
+        TriggerBuildRequest request = new TriggerBuildRequest("main", "sha-hash", "author@example.com");
         Project project = Project.builder().id(projectId).name("my-project").isActive(false).build();
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
@@ -94,12 +98,12 @@ class BuildServiceImplTest {
     @Test
     void executeBuild_ShouldStartFirstStep_WhenConfigurationIsValid() {
         Long buildId = 100L;
-        Project project = Project.builder().id(1L).repoUrl("git-url").pipelineConfigPath(".yaml").build();
+        Project project = Project.builder().id(1L).repoUrl("git-url").pipelineConfigPath(".yaml").secrets(List.of()).build();
         Build build = Build.builder().id(buildId).project(project).branch("main").commitSha("sha-hash").status(BuildStatus.PENDING).build();
         
         StepDefinition stepDef1 = new StepDefinition("Step1", "alpine", List.of("echo 1"), null);
         StepDefinition stepDef2 = new StepDefinition("Step2", "alpine", List.of("echo 2"), null);
-        PipelineDefinition pipelineDef = new PipelineDefinition(1, "my-pipeline", List.of(stepDef1, stepDef2));
+        PipelineDefinition pipelineDef = new PipelineDefinition(1, "my-pipeline", List.of(stepDef1, stepDef2), null, null);
 
         when(buildRepository.findById(buildId)).thenReturn(Optional.of(build));
         when(pipelineService.parse(eq("git-url"), eq("main"), eq("sha-hash"), eq(".yaml"))).thenReturn(pipelineDef);
@@ -144,7 +148,8 @@ class BuildServiceImplTest {
     @Test
     void onStepCompleted_ShouldStartNextStep_WhenPreviousSucceeds() {
         Long buildId = 100L;
-        Build build = Build.builder().id(buildId).status(BuildStatus.RUNNING).build();
+        Project project = Project.builder().id(1L).secrets(List.of()).build();
+        Build build = Build.builder().id(buildId).project(project).status(BuildStatus.RUNNING).build();
         BuildStep step1 = BuildStep.builder().id(1L).build(build).name("Step1").status(StepStatus.RUNNING).startedAt(Instant.now()).stepOrder(0).commands("echo 1").build();
         BuildStep step2 = BuildStep.builder().id(2L).build(build).name("Step2").status(StepStatus.PENDING).stepOrder(1).commands("echo 2").build();
         build.setSteps(new ArrayList<>(List.of(step1, step2)));

@@ -41,7 +41,7 @@ class ProjectServiceImplTest {
 
     @Test
     void create_ShouldCreateProject_WhenNameIsUnique() {
-        CreateProjectRequest request = new CreateProjectRequest("test-project", "https://github.com/test/repo", GitProvider.GITHUB, "main", ".rabotyaga.yaml");
+        CreateProjectRequest request = new CreateProjectRequest("test-project", "https://github.com/test/repo", GitProvider.GITHUB, "main", ".rabotyaga.yaml", null);
         Project project = Project.builder()
                 .name("test-project")
                 .repoUrl("https://github.com/test/repo")
@@ -59,7 +59,7 @@ class ProjectServiceImplTest {
                 .pipelineConfigPath(".rabotyaga.yaml")
                 .isActive(true)
                 .build();
-        ProjectResponse expectedResponse = new ProjectResponse(1L, "test-project", "https://github.com/test/repo", GitProvider.GITHUB, "main", "random-uuid-string", ".rabotyaga.yaml", true, Instant.now(), Instant.now());
+        ProjectResponse expectedResponse = new ProjectResponse(1L, "test-project", "https://github.com/test/repo", GitProvider.GITHUB, "main", "random-uuid-string", ".rabotyaga.yaml", true, null, Instant.now(), Instant.now());
 
         when(projectRepository.existsByName(request.name())).thenReturn(false);
         when(projectMapper.toEntity(request)).thenReturn(project);
@@ -76,7 +76,7 @@ class ProjectServiceImplTest {
 
     @Test
     void create_ShouldThrowBusinessException_WhenNameExists() {
-        CreateProjectRequest request = new CreateProjectRequest("test-project", "https://github.com/test/repo", GitProvider.GITHUB, "main", ".rabotyaga.yaml");
+        CreateProjectRequest request = new CreateProjectRequest("test-project", "https://github.com/test/repo", GitProvider.GITHUB, "main", ".rabotyaga.yaml", null);
         when(projectRepository.existsByName(request.name())).thenReturn(true);
 
         assertThrows(BusinessException.class, () -> projectService.create(request));
@@ -87,7 +87,7 @@ class ProjectServiceImplTest {
     void getById_ShouldReturnResponse_WhenProjectExists() {
         Long id = 1L;
         Project project = new Project();
-        ProjectResponse expectedResponse = new ProjectResponse(1L, "test-project", "https://github.com/test/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, Instant.now(), Instant.now());
+        ProjectResponse expectedResponse = new ProjectResponse(1L, "test-project", "https://github.com/test/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, null, Instant.now(), Instant.now());
 
         when(projectRepository.findById(id)).thenReturn(Optional.of(project));
         when(projectMapper.toResponse(project)).thenReturn(expectedResponse);
@@ -111,7 +111,7 @@ class ProjectServiceImplTest {
         Pageable pageable = PageRequest.of(0, 10);
         Project project = new Project();
         Page<Project> page = new PageImpl<>(List.of(project));
-        ProjectResponse expectedResponse = new ProjectResponse(1L, "test-project", "https://github.com/test/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, Instant.now(), Instant.now());
+        ProjectResponse expectedResponse = new ProjectResponse(1L, "test-project", "https://github.com/test/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, null, Instant.now(), Instant.now());
 
         when(projectRepository.findAll(pageable)).thenReturn(page);
         when(projectMapper.toResponse(project)).thenReturn(expectedResponse);
@@ -126,7 +126,7 @@ class ProjectServiceImplTest {
     @Test
     void update_ShouldUpdateProject_WhenValid() {
         Long id = 1L;
-        UpdateProjectRequest request = new UpdateProjectRequest("new-name", null, null, null, null, null);
+        UpdateProjectRequest request = new UpdateProjectRequest("new-name", null, null, null, null, null, null);
         Project project = Project.builder()
                 .id(id)
                 .name("old-name")
@@ -135,7 +135,7 @@ class ProjectServiceImplTest {
                 .id(id)
                 .name("new-name")
                 .build();
-        ProjectResponse expectedResponse = new ProjectResponse(id, "new-name", "https://github.com/test/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, Instant.now(), Instant.now());
+        ProjectResponse expectedResponse = new ProjectResponse(id, "new-name", "https://github.com/test/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, null, Instant.now(), Instant.now());
 
         when(projectRepository.findById(id)).thenReturn(Optional.of(project));
         when(projectRepository.existsByName("new-name")).thenReturn(false);
@@ -152,7 +152,7 @@ class ProjectServiceImplTest {
     @Test
     void update_ShouldThrowBusinessException_WhenNewNameExists() {
         Long id = 1L;
-        UpdateProjectRequest request = new UpdateProjectRequest("existing-name", null, null, null, null, null);
+        UpdateProjectRequest request = new UpdateProjectRequest("existing-name", null, null, null, null, null, null);
         Project project = Project.builder()
                 .id(id)
                 .name("old-name")

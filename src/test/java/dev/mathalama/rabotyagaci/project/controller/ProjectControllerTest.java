@@ -40,8 +40,8 @@ class ProjectControllerTest {
 
     @Test
     void create_ShouldReturn201_WhenValidRequest() throws Exception {
-        CreateProjectRequest request = new CreateProjectRequest("my-app", "https://github.com/my/repo", GitProvider.GITHUB, "main", ".rabotyaga.yaml");
-        ProjectResponse response = new ProjectResponse(1L, "my-app", "https://github.com/my/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, Instant.now(), Instant.now());
+        CreateProjectRequest request = new CreateProjectRequest("my-app", "https://github.com/my/repo", GitProvider.GITHUB, "main", ".rabotyaga.yaml", null);
+        ProjectResponse response = new ProjectResponse(1L, "my-app", "https://github.com/my/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, null, Instant.now(), Instant.now());
 
         when(projectService.create(any(CreateProjectRequest.class))).thenReturn(response);
 
@@ -56,7 +56,7 @@ class ProjectControllerTest {
 
     @Test
     void create_ShouldReturn400_WhenInvalidRequest() throws Exception {
-        CreateProjectRequest request = new CreateProjectRequest("", "https://github.com/my/repo", GitProvider.GITHUB, "main", ".rabotyaga.yaml");
+        CreateProjectRequest request = new CreateProjectRequest("", "https://github.com/my/repo", GitProvider.GITHUB, "main", ".rabotyaga.yaml", null);
 
         mockMvc.perform(post("/api/v1/projects")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -69,7 +69,7 @@ class ProjectControllerTest {
     @Test
     void getById_ShouldReturnProject_WhenExists() throws Exception {
         Long id = 1L;
-        ProjectResponse response = new ProjectResponse(id, "my-app", "https://github.com/my/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, Instant.now(), Instant.now());
+        ProjectResponse response = new ProjectResponse(id, "my-app", "https://github.com/my/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, null, Instant.now(), Instant.now());
 
         when(projectService.getById(id)).thenReturn(response);
 
@@ -93,7 +93,7 @@ class ProjectControllerTest {
 
     @Test
     void getAll_ShouldReturnPagedResponse() throws Exception {
-        ProjectResponse response = new ProjectResponse(1L, "my-app", "https://github.com/my/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, Instant.now(), Instant.now());
+        ProjectResponse response = new ProjectResponse(1L, "my-app", "https://github.com/my/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, null, Instant.now(), Instant.now());
         when(projectService.getAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(response)));
 
         mockMvc.perform(get("/api/v1/projects")
@@ -108,8 +108,8 @@ class ProjectControllerTest {
     @Test
     void update_ShouldReturnUpdatedProject_WhenValid() throws Exception {
         Long id = 1L;
-        UpdateProjectRequest request = new UpdateProjectRequest("new-name", null, null, null, null, null);
-        ProjectResponse response = new ProjectResponse(id, "new-name", "https://github.com/my/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, Instant.now(), Instant.now());
+        UpdateProjectRequest request = new UpdateProjectRequest("new-name", null, null, null, null, null, null);
+        ProjectResponse response = new ProjectResponse(id, "new-name", "https://github.com/my/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, null, Instant.now(), Instant.now());
 
         when(projectService.update(eq(id), any(UpdateProjectRequest.class))).thenReturn(response);
 

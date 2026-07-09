@@ -7,6 +7,7 @@ import dev.mathalama.rabotyagaci.build.api.event.BuildCancelledEvent;
 import dev.mathalama.rabotyagaci.build.api.event.BuildCompletedEvent;
 import dev.mathalama.rabotyagaci.build.api.event.BuildCreatedEvent;
 import dev.mathalama.rabotyagaci.build.api.event.BuildStepStartedEvent;
+import dev.mathalama.rabotyagaci.build.api.event.OrchestratorInternalErrorEvent;
 import dev.mathalama.rabotyagaci.build.domain.Build;
 import dev.mathalama.rabotyagaci.build.domain.BuildStatus;
 import dev.mathalama.rabotyagaci.build.domain.BuildStep;
@@ -27,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -53,6 +55,7 @@ public class BuildServiceImpl implements BuildService {
     private final BuildCacheService buildCacheService;
     private final BuildMapper buildMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final dev.mathalama.rabotyagaci.project.service.impl.SecretCryptoService secretCryptoService;
 
     @Value("${rabotyagaci.runner.workspace-dir}")
     private String workspaceDirParent;
@@ -227,8 +230,39 @@ public class BuildServiceImpl implements BuildService {
         }
 
         log.info("Build {} has been CANCELLED", id);
+        buildStepRepository.saveAll(build.getSteps());
+        buildRepository.save(build);
+
         eventPublisher.publishEvent(new BuildCancelledEvent(id, cancelledAt));
         eventPublisher.publishEvent(new BuildCompletedEvent(id, BuildStatus.CANCELLED, cancelledAt));
+    }
+
+    @EventListener
+    public void handleOrchestratorInternalError(OrchestratorInternalErrorEvent event) {
+        log.error("Received OrchestratorInternalErrorEvent for build ID: {}. Failing build globally.", event.buildId(), event.cause());
+        
+        Build build = buildRepository.findById(event.buildId()).orElse(null);
+        if (build == null || build.getStatus() == BuildStatus.SUCCESS || build.getStatus() == BuildStatus.FAILURE || build.getStatus() == BuildStatus.CANCELLED) {
+            return;
+        }
+
+        Instant finishedAt = event.occurredAt();
+        build.setStatus(BuildStatus.FAILURE);
+        build.setFinishedAt(finishedAt);
+        buildRepository.save(build);
+
+        // Mark remaining steps as failed
+        if (build.getSteps() != null) {
+            for (BuildStep s : build.getSteps()) {
+                if (s.getStatus() == StepStatus.PENDING || s.getStatus() == StepStatus.RUNNING) {
+                    s.setStatus(StepStatus.FAILURE);
+                    s.setFinishedAt(finishedAt);
+                    buildStepRepository.save(s);
+                }
+            }
+        }
+
+        eventPublisher.publishEvent(new BuildCompletedEvent(build.getId(), BuildStatus.FAILURE, finishedAt));
     }
 
     @Override
@@ -282,7 +316,8 @@ public class BuildServiceImpl implements BuildService {
     }
 
     private void startNextStep(Build build) {
-        BuildStep nextStep = build.getSteps().stream()
+        try {
+            BuildStep nextStep = build.getSteps().stream()
                 .filter(step -> step.getStatus() == StepStatus.PENDING)
                 .findFirst()
                 .orElse(null);
@@ -304,7 +339,7 @@ public class BuildServiceImpl implements BuildService {
             java.util.Map<String, String> envVars = new java.util.HashMap<>();
             if (build.getProject().getSecrets() != null) {
                 build.getProject().getSecrets().forEach(secret -> 
-                    envVars.put(secret.getName(), secret.getValue())
+                    envVars.put(secret.getName(), secretCryptoService.decrypt(secret.getValue()))
                 );
             }
 
@@ -330,7 +365,25 @@ public class BuildServiceImpl implements BuildService {
                 buildCacheService.saveCache(build.getProject().getId(), workspaceDir, List.of(build.getCachedPaths().split(",")));
             }
 
-            eventPublisher.publishEvent(new BuildCompletedEvent(build.getId(), BuildStatus.SUCCESS, finishedAt));
+                eventPublisher.publishEvent(new BuildCompletedEvent(build.getId(), BuildStatus.SUCCESS, finishedAt));
+            }
+        } catch (Exception e) {
+            log.error("Fatal error starting next step for build ID: {}. Failing build.", build.getId(), e);
+            Instant finishedAt = Instant.now();
+            build.setStatus(BuildStatus.FAILURE);
+            build.setFinishedAt(finishedAt);
+            buildRepository.save(build);
+            
+            // Mark remaining steps as failed
+            for (BuildStep s : build.getSteps()) {
+                if (s.getStatus() == StepStatus.PENDING || s.getStatus() == StepStatus.RUNNING) {
+                    s.setStatus(StepStatus.FAILURE);
+                    s.setFinishedAt(finishedAt);
+                    buildStepRepository.save(s);
+                }
+            }
+            
+            eventPublisher.publishEvent(new BuildCompletedEvent(build.getId(), BuildStatus.FAILURE, finishedAt));
         }
     }
 }

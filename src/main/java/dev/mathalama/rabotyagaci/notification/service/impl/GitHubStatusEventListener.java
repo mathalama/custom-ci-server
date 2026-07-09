@@ -23,7 +23,7 @@ public class GitHubStatusEventListener {
     private final BuildRepository buildRepository;
     private final GitHubStatusService gitHubStatusService;
 
-    @Value("${rabotyagaci.frontend.url:http://localhost:3000}")
+    @Value("${rabotyagaci.frontend.url:http://localhost:3001}")
     private String frontendUrl;
 
     @Async

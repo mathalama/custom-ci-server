@@ -27,8 +27,18 @@ public class BuildCacheService {
         }
 
         for (String path : paths) {
-            Path cachePath = projectCacheDir.resolve(path);
-            Path targetPath = workspaceDir.resolve(path);
+            Path cachePath = projectCacheDir.resolve(path).normalize();
+            Path targetPath = workspaceDir.resolve(path).normalize();
+
+            // Zip-Slip / Directory Traversal Protection
+            if (!cachePath.startsWith(projectCacheDir.normalize())) {
+                log.warn("Security warning: Cache path {} resolves outside project cache directory. Skipping.", path);
+                continue;
+            }
+            if (!targetPath.startsWith(workspaceDir.normalize())) {
+                log.warn("Security warning: Target path {} resolves outside workspace directory. Skipping.", path);
+                continue;
+            }
 
             if (Files.exists(cachePath)) {
                 log.info("Restoring cache for path: {}", path);
@@ -53,8 +63,18 @@ public class BuildCacheService {
         Path projectCacheDir = Path.of(workspaceDirParent).resolve("cache").resolve("project-" + projectId);
 
         for (String path : paths) {
-            Path sourcePath = workspaceDir.resolve(path);
-            Path cachePath = projectCacheDir.resolve(path);
+            Path sourcePath = workspaceDir.resolve(path).normalize();
+            Path cachePath = projectCacheDir.resolve(path).normalize();
+
+            // Zip-Slip / Directory Traversal Protection
+            if (!sourcePath.startsWith(workspaceDir.normalize())) {
+                log.warn("Security warning: Source path {} resolves outside workspace directory. Skipping.", path);
+                continue;
+            }
+            if (!cachePath.startsWith(projectCacheDir.normalize())) {
+                log.warn("Security warning: Cache path {} resolves outside project cache directory. Skipping.", path);
+                continue;
+            }
 
             if (Files.exists(sourcePath)) {
                 log.info("Saving cache for path: {}", path);

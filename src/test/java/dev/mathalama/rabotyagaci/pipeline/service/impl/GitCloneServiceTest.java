@@ -1,5 +1,6 @@
 package dev.mathalama.rabotyagaci.pipeline.service.impl;
 
+import dev.mathalama.rabotyagaci.common.exception.BusinessException;
 import dev.mathalama.rabotyagaci.common.exception.ResourceNotFoundException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -57,5 +58,61 @@ class GitCloneServiceTest {
         assertEquals("hello world", gitCloneService.readFile(cloneDir, "test.txt"));
         assertThrows(ResourceNotFoundException.class, () -> 
                 gitCloneService.readFile(cloneDir, "another.txt"));
+    }
+
+    @Test
+    void testCloneOrPull_InvalidRepo_ThrowsBusinessException(@TempDir Path cloneDir) {
+        String invalidUrl = "http://invalid-url.local/repo.git";
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                gitCloneService.cloneOrPull(invalidUrl, cloneDir));
+        assertTrue(exception.getMessage().contains("Failed to clone repository"));
+    }
+
+    @Test
+    void testCheckoutCommit_InvalidCommit_ThrowsBusinessException(@TempDir Path originDir, @TempDir Path cloneDir) throws Exception {
+        try (Git git = Git.init().setDirectory(originDir.toFile()).call()) {
+            Files.writeString(originDir.resolve("test.txt"), "hello");
+            git.add().addFilepattern("test.txt").call();
+            git.commit().setMessage("Initial commit").call();
+        }
+
+        gitCloneService.cloneOrPull(originDir.toUri().toString(), cloneDir);
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                gitCloneService.checkoutCommit(cloneDir, "invalid-commit-hash"));
+        assertTrue(exception.getMessage().contains("Failed to checkout commit"));
+    }
+
+    @Test
+    void testReadFile_IsDirectory_ThrowsBusinessException(@TempDir Path originDir, @TempDir Path cloneDir) throws Exception {
+        try (Git git = Git.init().setDirectory(originDir.toFile()).call()) {
+            Files.createDirectories(originDir.resolve("somedir"));
+            Files.writeString(originDir.resolve("somedir/test.txt"), "hello");
+            git.add().addFilepattern(".").call();
+            git.commit().setMessage("Initial commit").call();
+        }
+
+        gitCloneService.cloneOrPull(originDir.toUri().toString(), cloneDir);
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                gitCloneService.readFile(cloneDir, "somedir"));
+        assertTrue(exception.getMessage().contains("Failed to read file from repository"));
+    }
+
+    @Test
+    void testCloneOrPull_ExistingDirectoryNotGit_DeletesAndReclones(@TempDir Path originDir, @TempDir Path cloneDir) throws Exception {
+        try (Git git = Git.init().setDirectory(originDir.toFile()).call()) {
+            Files.writeString(originDir.resolve("test.txt"), "hello");
+            git.add().addFilepattern("test.txt").call();
+            git.commit().setMessage("Initial commit").call();
+        }
+
+        Files.createDirectories(cloneDir);
+        Files.writeString(cloneDir.resolve("garbage.txt"), "garbage");
+
+        gitCloneService.cloneOrPull(originDir.toUri().toString(), cloneDir);
+
+        assertTrue(Files.exists(cloneDir.resolve("test.txt")));
+        assertFalse(Files.exists(cloneDir.resolve("garbage.txt")));
     }
 }

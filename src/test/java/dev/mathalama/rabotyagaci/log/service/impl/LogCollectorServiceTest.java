@@ -44,7 +44,7 @@ class LogCollectorServiceTest {
         when(buildStepRepository.findById(10L)).thenReturn(Optional.of(buildStep));
 
         for (int i = 1; i <= 50; i++) {
-            logCollectorService.handleLogChunk(new LogChunkEvent(10L, "STDOUT", "Log " + i, i, Instant.now()));
+            logCollectorService.handleLogChunk(new LogChunkEvent(1L, 10L, "STDOUT", "Log " + i, i, Instant.now()));
         }
 
         ArgumentCaptor<List<BuildLog>> logCaptor = ArgumentCaptor.forClass(List.class);
@@ -60,7 +60,7 @@ class LogCollectorServiceTest {
     void testScheduledFlush() {
         when(buildStepRepository.findById(10L)).thenReturn(Optional.of(buildStep));
 
-        logCollectorService.handleLogChunk(new LogChunkEvent(10L, "STDOUT", "Log single", 1, Instant.now()));
+        logCollectorService.handleLogChunk(new LogChunkEvent(1L, 10L, "STDOUT", "Log single", 1, Instant.now()));
 
         verify(buildLogRepository, never()).saveAll(anyList());
 

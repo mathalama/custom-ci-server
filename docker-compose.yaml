@@ -37,7 +37,8 @@ services:
       - SMTP_PASSWORD=${MAIL_PASSWORD}
       - EMAIL_NOTIFICATIONS_ENABLED=${EMAIL_NOTIFICATIONS_ENABLED:-true}
       - EMAIL_NOTIFICATIONS_FROM=${EMAIL_NOTIFICATIONS_FROM:-noreply@mathalama.dev}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3001}
+      - RABOTYAGACI_MASTER_KEY=${RABOTYAGACI_MASTER_KEY}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - app-data:/tmp/rabotyagaci
@@ -49,7 +50,7 @@ services:
     build: ./frontend
     container_name: rabotyagaci-frontend
     ports:
-      - "3000:80"
+      - "3001:80"
     depends_on:
       - app
 

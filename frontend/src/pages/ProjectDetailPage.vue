@@ -8,86 +8,113 @@
       </div>
       <div style="display: flex; gap: 8px">
         <button class="btn btn-primary" @click="showTriggerModal = true">
-          <Icon name="play" :size="14" />
+          <Icon name="play" :size="14"></Icon>
           Запустить билд
         </button>
         <button class="btn btn-danger" @click="handleDelete">
-          <Icon name="trash" :size="14" />
+          <Icon name="trash" :size="14"></Icon>
           Удалить
         </button>
       </div>
     </div>
 
-    <!-- Project info -->
-    <div class="card" style="margin-bottom: 24px">
-      <div class="project-info-grid">
-        <div><span class="info-label">Провайдер:</span> {{ project.gitProvider }}</div>
-        <div><span class="info-label">Ветка:</span> {{ project.defaultBranch }}</div>
-        <div><span class="info-label">Конфиг:</span> <code>{{ project.pipelineConfigPath }}</code></div>
-        <div><span class="info-label">GitHub Token:</span>
-          <span v-if="project.githubToken" style="color: var(--success)">✓ Установлен</span>
-          <span v-else style="color: var(--text-secondary)">Не установлен</span>
-        </div>
-        <div><span class="info-label">Webhook URL:</span>
-          <code>/api/v1/webhooks/github/{{ project.id }}</code>
-        </div>
-        <div><span class="info-label">Webhook Secret:</span>
-          <code>{{ project.webhookSecret }}</code>
-        </div>
-      </div>
-    </div>
-
-    <!-- Status Badge -->
-    <div class="card" style="margin-bottom: 24px">
-      <h2 class="card-title">Статус-бейдж</h2>
-      <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
-        <div style="padding: 12px; background: var(--surface-default); border-radius: 6px; border: 1px solid var(--border);">
-          <img :src="`/api/v1/projects/${project.id}/badge`" alt="Build Status" />
-        </div>
-        <div style="flex-grow: 1;">
-          <p style="margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">Markdown код для вставки в README.md:</p>
-          <code style="display: block; width: 100%; box-sizing: border-box; word-break: break-all;">
-            [![Build Status]({{ windowOrigin }}/api/v1/projects/{{ project.id }}/badge)]({{ windowOrigin }}/projects/{{ project.id }})
-          </code>
-        </div>
-      </div>
-    </div>
-
-    <!-- Secrets -->
-    <div class="card" style="margin-bottom: 24px">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">
-        <h2 class="card-title" style="margin-bottom: 0">Секреты</h2>
-        <button class="btn btn-primary" @click="showSecretModal = true">
-          <Icon name="plus" :size="14" />
-          Добавить
-        </button>
-      </div>
-      <div v-if="secrets.length === 0" class="empty-state" style="padding: 24px">
-        <div class="empty-state-text">Нет добавленных секретов</div>
-      </div>
-      <div v-else class="secrets-list">
-        <div v-for="secret in secrets" :key="secret.id" class="secret-item">
-          <div class="secret-info">
-            <span class="secret-name">{{ secret.name }}</span>
-            <code class="secret-value">{{ secret.value }}</code>
+    <!-- Bento Grid Layout -->
+    <div class="bento-grid">
+      <!-- Main Bento Section (Left) -->
+      <div class="bento-main">
+        <!-- Project Parameters Card -->
+        <div class="card">
+          <h2 class="card-title">Параметры проекта</h2>
+          <div class="project-info-grid">
+            <div><span class="info-label">Провайдер:</span> {{ project.gitProvider }}</div>
+            <div><span class="info-label">Ветка по умолчанию:</span> <code>{{ project.defaultBranch }}</code></div>
+            <div><span class="info-label">Путь к конфигу:</span> <code>{{ project.pipelineConfigPath }}</code></div>
+            <div><span class="info-label">GitHub Token:</span>
+              <span v-if="project.githubToken" style="color: var(--success); font-weight: 600;">✓ Установлен</span>
+              <span v-else style="color: var(--text-muted)">Не установлен</span>
+            </div>
           </div>
-          <button class="btn btn-danger" @click="handleDeleteSecret(secret.id)">
-            <Icon name="trash" :size="14" />
-          </button>
+        </div>
+
+        <!-- Secrets Card -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+            <h2 class="card-title" style="margin-bottom: 0">Секреты проекта</h2>
+            <button class="btn btn-primary" @click="showSecretModal = true">
+              <Icon name="plus" :size="14"></Icon>
+              Добавить
+            </button>
+          </div>
+          <div v-if="secrets.length === 0" class="empty-state" style="padding: 24px">
+            <div class="empty-state-text">Нет добавленных секретов</div>
+          </div>
+          <div v-else class="secrets-list">
+            <div v-for="secret in secrets" :key="secret.id" class="secret-item">
+              <div class="secret-info">
+                <span class="secret-name">{{ secret.name }}</span>
+                <code class="secret-value">{{ secret.value }}</code>
+              </div>
+              <button class="btn btn-danger" @click="handleDeleteSecret(secret.id)">
+                <Icon name="trash" :size="14"></Icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Builds History Card (Properly wrapped) -->
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 16px">История билдов</h2>
+          <div v-if="builds.length === 0" class="empty-state">
+            <div class="empty-state-icon">
+              <Icon name="hammer" :size="40"></Icon>
+            </div>
+            <div class="empty-state-text">Нет билдов. Запустите первый!</div>
+          </div>
+          <div v-else class="builds-list">
+            <BuildCard v-for="build in builds" :key="build.id" :build="build"></BuildCard>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Builds -->
-    <h2 class="card-title">История билдов</h2>
-    <div v-if="builds.length === 0" class="empty-state">
-      <div class="empty-state-icon">
-        <Icon name="hammer" :size="40" />
+      <!-- Sidebar Bento Section (Right) -->
+      <div class="bento-sidebar">
+        <!-- Webhook Integration Card -->
+        <div class="card">
+          <h2 class="card-title">Интеграция вебхука</h2>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="info-label" style="font-size: 13px; margin-bottom: 4px; display: block;">Payload URL:</label>
+              <code style="word-break: break-all; display: block;">{{ windowOrigin }}/api/v1/webhooks/github/{{ project.id }}</code>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="info-label" style="font-size: 13px; margin-bottom: 4px; display: block;">Secret Key:</label>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <code style="flex-grow: 1; word-break: break-all;">{{ displayedWebhookSecret }}</code>
+                <button class="btn btn-icon-only" style="padding: 6px 10px;" @click="toggleWebhookSecret" type="button" title="Показать или скрыть">
+                  <Icon :name="webhookSecretIcon" :size="13"></Icon>
+                </button>
+                <button class="btn btn-icon-only" style="padding: 6px 10px;" @click="copyToClipboard(project.webhookSecret)" type="button" title="Копировать">
+                  <Icon name="copy" :size="13"></Icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Badge Card -->
+        <div class="card">
+          <h2 class="card-title">Статус-бейдж</h2>
+          <div class="badge-content">
+            <div class="badge-img-wrapper">
+              <img :src="badgeUrl" alt="Build Status" />
+            </div>
+            <div class="badge-code-wrapper">
+              <p class="badge-desc">Markdown код для README.md:</p>
+              <code class="badge-code">{{ markdownBadgeCode }}</code>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="empty-state-text">Нет билдов. Запустите первый!</div>
-    </div>
-    <div v-else class="builds-list">
-      <BuildCard v-for="build in builds" :key="build.id" :build="build" />
     </div>
 
     <!-- Trigger Modal -->
@@ -130,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { getProject, getBuilds, triggerBuild, deleteProject, getSecrets, addSecret, deleteSecret } from '@/api/client'
 import type { ProjectResponse, BuildResponse, SecretResponse } from '@/types'
@@ -149,6 +176,35 @@ const triggerForm = ref({ branch: '', commitSha: '' })
 const showSecretModal = ref(false)
 const secretForm = ref({ name: '', value: '' })
 const windowOrigin = typeof window !== 'undefined' ? window.location.origin : ''
+
+const showWebhookSecret = ref(false)
+const maskSecret = (secret: string | undefined) => {
+  if (!secret) return ''
+  if (secret.length <= 8) return '••••••••'
+  return `${secret.slice(0, 4)}••••••••${secret.slice(-4)}`
+}
+const copyToClipboard = (text: string | undefined) => {
+  if (!text) return
+  navigator.clipboard.writeText(text)
+  alert('Скопировано в буфер обмена!')
+}
+
+const webhookSecretIcon = computed(() => showWebhookSecret.value ? 'eye-off' : 'eye')
+const displayedWebhookSecret = computed(() => {
+  if (!project.value) return ''
+  return showWebhookSecret.value ? project.value.webhookSecret : maskSecret(project.value.webhookSecret)
+})
+const markdownBadgeCode = computed(() => {
+  if (!project.value) return ''
+  return `[![Build Status](${windowOrigin}/api/v1/projects/${project.value.id}/badge)](${windowOrigin}/projects/${project.value.id})`
+})
+const badgeUrl = computed(() => {
+  if (!project.value) return ''
+  return `/api/v1/projects/${project.value.id}/badge`
+})
+const toggleWebhookSecret = () => {
+  showWebhookSecret.value = !showWebhookSecret.value
+}
 
 onMounted(async () => {
   try {
@@ -216,24 +272,50 @@ const handleDeleteSecret = async (secretId: number) => {
 </script>
 
 <style scoped>
+.bento-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bento-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.bento-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .project-info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
   font-size: 14px;
 }
 
 .info-label {
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
+  margin-right: 4px;
 }
 
 code {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  background: var(--surface-elevated);
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-size: 12.5px;
+  background: var(--surface-hover);
+  padding: 4px 8px;
+  border-radius: 6px;
   color: var(--text-primary);
   border: 1px solid var(--border);
 }
@@ -241,13 +323,33 @@ code {
 .builds-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+}
+
+/* Custom list-style for builds inside the parent card to avoid double card styling */
+.builds-list :deep(.build-card) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  padding: 16px 8px !important;
+  margin: 0 !important;
+}
+
+.builds-list :deep(.build-card:last-child) {
+  border-bottom: none !important;
+}
+
+.builds-list :deep(.build-card:hover) {
+  transform: none !important;
+  background: var(--surface-hover) !important;
+  border-radius: 8px !important;
 }
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -269,10 +371,10 @@ code {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background: var(--surface-default);
+  padding: 12px 16px;
+  background: var(--surface-hover);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .secret-info {
@@ -282,11 +384,59 @@ code {
 }
 
 .secret-name {
-  font-weight: 500;
+  font-weight: 600;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .secret-value {
   color: var(--text-secondary);
+}
+
+/* Badge styling */
+.badge-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.badge-img-wrapper {
+  padding: 12px 20px;
+  background: var(--bg-dark);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-self: start;
+}
+
+.badge-desc {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.badge-code {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.btn-icon-only {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-icon-only:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
 }
 </style>

@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -58,7 +59,9 @@ class DockerRunnerServiceTest {
             return;
         }
 
-        Path workspaceDir = tempDir.resolve("workspace");
+        runnerConfig.setVolumeName(tempDir.toAbsolutePath().toString().replace("\\", "/"));
+        Path workspacesDir = tempDir.resolve("workspaces");
+        Path workspaceDir = workspacesDir.resolve("workspace");
         Files.createDirectories(workspaceDir);
 
         BuildStepStartedEvent event = new BuildStepStartedEvent(
@@ -67,7 +70,8 @@ class DockerRunnerServiceTest {
                 "Test Step",
                 "alpine:latest",
                 List.of("echo 'Hello from RabotyagaCI'", "echo 'Line 2'"),
-                workspaceDir
+                workspaceDir,
+                Map.of()
         );
 
         dockerRunnerService.handleBuildStepStarted(event);
@@ -109,7 +113,9 @@ class DockerRunnerServiceTest {
             return;
         }
 
-        Path workspaceDir = tempDir.resolve("workspace");
+        runnerConfig.setVolumeName(tempDir.toAbsolutePath().toString().replace("\\", "/"));
+        Path workspacesDir = tempDir.resolve("workspaces");
+        Path workspaceDir = workspacesDir.resolve("workspace");
         Files.createDirectories(workspaceDir);
 
         BuildStepStartedEvent event = new BuildStepStartedEvent(
@@ -118,7 +124,8 @@ class DockerRunnerServiceTest {
                 "Fail Step",
                 "alpine:latest",
                 List.of("exit 42"),
-                workspaceDir
+                workspaceDir,
+                Map.of()
         );
 
         dockerRunnerService.handleBuildStepStarted(event);
