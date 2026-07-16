@@ -66,11 +66,9 @@ public class ArtifactCollectorService {
         }
 
         try {
-            // Parse pipeline config to get defined artifacts patterns
+            // Parse pipeline config to get defined artifacts patterns from local workspace
             PipelineDefinition pipelineDef = pipelineService.parse(
-                    project.getRepoUrl(),
-                    build.getBranch(),
-                    build.getCommitSha(),
+                    workspaceDir,
                     project.getPipelineConfigPath()
             );
 

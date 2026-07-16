@@ -33,4 +33,19 @@ public interface BuildService {
      * Callback method called when a build step completes execution.
      */
     void onStepCompleted(Long buildId, Long stepId, StepStatus status, int exitCode);
+
+    /**
+     * Transactional method to set build status to RUNNING and populate build steps.
+     */
+    void prepareBuildSteps(Long buildId, dev.mathalama.rabotyagaci.pipeline.api.dto.PipelineDefinition pipelineDef);
+
+    /**
+     * Transactional method to find and execute the next pending step of a build.
+     */
+    void startNextStep(Long buildId);
+
+    /**
+     * Transactional method to mark a build as failed (e.g. if clone or parsing failed).
+     */
+    void failBuild(Long buildId, String errorMessage);
 }

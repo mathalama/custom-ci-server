@@ -96,7 +96,7 @@ class ArtifactCollectorServiceTest {
         );
 
         when(buildRepository.findById(5L)).thenReturn(Optional.of(testBuild));
-        when(pipelineService.parse(any(), any(), any(), any())).thenReturn(pipelineDef);
+        when(pipelineService.parse(any(), any())).thenReturn(pipelineDef);
 
         BuildCompletedEvent event = new BuildCompletedEvent(5L, BuildStatus.SUCCESS, Instant.now());
         artifactCollectorService.handleBuildCompleted(event);

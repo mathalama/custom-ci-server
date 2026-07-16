@@ -17,6 +17,10 @@
           <Icon name="folder" :size="18" />
           <span>Проекты</span>
         </router-link>
+        <router-link to="/runners" class="nav-item" active-class="active">
+          <Icon name="package" :size="18" />
+          <span>Раннеры</span>
+        </router-link>
         <router-link to="/settings" class="nav-item" active-class="active">
           <Icon name="gear" :size="18" />
           <span>Настройки</span>

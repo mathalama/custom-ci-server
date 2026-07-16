@@ -15,30 +15,19 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class PipelineServiceImpl implements PipelineService {
 
-    private final GitCloneService gitCloneService;
-    private final PipelineConfig pipelineConfig;
-
     @Override
-    public PipelineDefinition parse(String repoUrl, String branch, String commitSha, String configFilePath) {
-        log.info("Starting pipeline parsing for repo: {}, branch: {}, commit: {}, file: {}",
-                repoUrl, branch, commitSha, configFilePath);
+    public PipelineDefinition parse(Path projectDir, String configFilePath) {
+        log.info("Starting pipeline parsing from local project dir: {}, file: {}", projectDir, configFilePath);
 
-        // Generate a deterministic folder name for the repository URL using UUID
-        String repoFolder = UUID.nameUUIDFromBytes(repoUrl.getBytes()).toString();
-        Path cloneDir = Path.of(pipelineConfig.getCloneDir()).resolve(repoFolder);
+        Path file = projectDir.resolve(configFilePath);
+        if (!java.nio.file.Files.exists(file)) {
+            throw new PipelineParseException("Configuration file not found in repository: " + configFilePath);
+        }
 
         try {
-            // Clone or pull to update the repository
-            gitCloneService.cloneOrPull(repoUrl, cloneDir);
-
-            // Checkout the exact commit requested for build
-            gitCloneService.checkoutCommit(cloneDir, commitSha);
-
-            // Read the pipeline config file content
-            String yamlContent = gitCloneService.readFile(cloneDir, configFilePath);
+            String yamlContent = java.nio.file.Files.readString(file);
 
             // Parse YAML content to PipelineDefinition using Jackson 3 YAMLMapper
             YAMLMapper yamlMapper = new YAMLMapper();

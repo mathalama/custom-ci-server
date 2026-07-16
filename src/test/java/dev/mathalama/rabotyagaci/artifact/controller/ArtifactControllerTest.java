@@ -25,6 +25,12 @@ class ArtifactControllerTest {
     @MockitoBean
     private BuildArtifactRepository buildArtifactRepository;
 
+    @MockitoBean
+    private dev.mathalama.rabotyagaci.build.repository.BuildRepository buildRepository;
+
+    @MockitoBean
+    private dev.mathalama.rabotyagaci.runner.repository.RunnerRepository runnerRepository;
+
     @Test
     void testGetArtifacts_ShouldReturnList() throws Exception {
         BuildArtifact artifact = BuildArtifact.builder()

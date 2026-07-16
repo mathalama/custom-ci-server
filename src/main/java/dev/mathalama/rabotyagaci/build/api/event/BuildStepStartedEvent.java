@@ -13,5 +13,8 @@ public record BuildStepStartedEvent(
         String dockerImage,
         List<String> commands,
         Path workspaceDir,
-        java.util.Map<String, String> environmentVariables
+        java.util.Map<String, String> environmentVariables,
+        boolean privileged,
+        boolean dockerSocket,
+        java.util.Map<String, String> secretFiles
 ) {}

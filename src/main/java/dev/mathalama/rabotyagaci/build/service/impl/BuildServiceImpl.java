@@ -34,6 +34,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
+import dev.mathalama.rabotyagaci.pipeline.api.dto.SecretFileDefinition;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -50,12 +52,12 @@ public class BuildServiceImpl implements BuildService {
     private final BuildRepository buildRepository;
     private final BuildStepRepository buildStepRepository;
     private final ProjectRepository projectRepository;
-    private final PipelineService pipelineService;
-    private final GitCloneService gitCloneService;
     private final BuildCacheService buildCacheService;
     private final BuildMapper buildMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final dev.mathalama.rabotyagaci.project.service.impl.SecretCryptoService secretCryptoService;
+    private final ObjectMapper objectMapper;
+    private final org.springframework.beans.factory.ObjectProvider<BuildOrchestrator> buildOrchestratorProvider;
 
     @Value("${rabotyagaci.runner.workspace-dir}")
     private String workspaceDirParent;
@@ -86,99 +88,106 @@ public class BuildServiceImpl implements BuildService {
         // Publish creation event
         eventPublisher.publishEvent(new BuildCreatedEvent(savedBuild.getId(), projectId, type, savedBuild.getCreatedAt()));
 
-        // Start build execution asynchronously
-        // Using a self-invocation helper requires we call it asynchronously on a separate thread
-        // executeBuild is annotated with @Async and is run on a background TaskExecutor
-        executeBuild(savedBuild.getId());
+        // Start build execution asynchronously via orchestrator
+        buildOrchestratorProvider.getObject().executeBuildAsync(
+                savedBuild.getId(),
+                project.getRepoUrl(),
+                savedBuild.getBranch(),
+                savedBuild.getCommitSha(),
+                project.getPipelineConfigPath()
+        );
 
         return buildMapper.toResponse(savedBuild);
     }
 
-    @Async
-    public void executeBuild(Long buildId) {
-        log.info("Asynchronously executing build ID: {}", buildId);
+    @Override
+    @Transactional
+    public void prepareBuildSteps(Long buildId, PipelineDefinition pipelineDef) {
+        log.info("Preparing build steps in database for build ID: {}", buildId);
+        Build build = buildRepository.findById(buildId)
+                .orElseThrow(() -> new ResourceNotFoundException("Build not found with id " + buildId));
 
+        build.setStatus(BuildStatus.RUNNING);
+        build.setStartedAt(Instant.now());
+
+        if (pipelineDef.notifications() != null && pipelineDef.notifications().email() != null) {
+            if (pipelineDef.notifications().email().onSuccess() != null) {
+                build.setNotifyOnSuccess(String.join(",", pipelineDef.notifications().email().onSuccess()));
+            }
+            if (pipelineDef.notifications().email().onFailure() != null) {
+                build.setNotifyOnFailure(String.join(",", pipelineDef.notifications().email().onFailure()));
+            }
+        }
+
+        if (pipelineDef.cache() != null && pipelineDef.cache().paths() != null && !pipelineDef.cache().paths().isEmpty()) {
+            build.setCachedPaths(String.join(",", pipelineDef.cache().paths()));
+            
+            // Restore cache
+            try {
+                Path workspaceDir = Path.of(workspaceDirParent).resolve("build-" + build.getId());
+                buildCacheService.restoreCache(build.getProject().getId(), workspaceDir, pipelineDef.cache().paths());
+            } catch (Exception e) {
+                log.warn("Failed to restore cache for build ID: {}", buildId, e);
+            }
+        }
+
+        List<BuildStep> steps = new ArrayList<>();
+        int order = 0;
+        for (StepDefinition stepDef : pipelineDef.steps()) {
+            String secretFilesJson = null;
+            if (stepDef.secretFiles() != null && !stepDef.secretFiles().isEmpty()) {
+                try {
+                    secretFilesJson = objectMapper.writeValueAsString(stepDef.secretFiles());
+                } catch (Exception e) {
+                    log.error("Failed to serialize secretFiles to JSON for step {}", stepDef.name(), e);
+                }
+            }
+
+            BuildStep step = BuildStep.builder()
+                    .build(build)
+                    .name(stepDef.name())
+                    .stepOrder(order++)
+                    .dockerImage(stepDef.image())
+                    .commands(String.join("\n", stepDef.commands()))
+                    .status(StepStatus.PENDING)
+                    .privileged(Boolean.TRUE.equals(stepDef.privileged()))
+                    .dockerSocket(Boolean.TRUE.equals(stepDef.dockerSocket()))
+                    .secretFiles(secretFilesJson)
+                    .build();
+            steps.add(step);
+        }
+
+        List<BuildStep> savedSteps = buildStepRepository.saveAll(steps);
+        build.setSteps(savedSteps);
+        buildRepository.save(build);
+    }
+
+    @Override
+    @Transactional
+    public void failBuild(Long buildId, String errorMessage) {
+        log.info("Failing build ID: {}. Error: {}", buildId, errorMessage);
         Build build = buildRepository.findById(buildId).orElse(null);
         if (build == null) {
-            log.error("Build with ID: {} not found for execution", buildId);
             return;
         }
 
-        try {
-            // Update status to RUNNING
-            build.setStatus(BuildStatus.RUNNING);
-            build.setStartedAt(Instant.now());
-            build = buildRepository.save(build);
+        Instant finishedAt = Instant.now();
+        build.setStatus(BuildStatus.FAILURE);
+        build.setFinishedAt(finishedAt);
+        buildRepository.save(build);
 
-            log.info("Cloning and parsing configuration file: {}", build.getProject().getPipelineConfigPath());
-
-            // Parse pipeline config (slow Git clone/fetch operation inside background thread)
-            PipelineDefinition pipelineDef = pipelineService.parse(
-                    build.getProject().getRepoUrl(),
-                    build.getBranch(),
-                    build.getCommitSha(),
-                    build.getProject().getPipelineConfigPath()
-            );
-
-            if (pipelineDef.notifications() != null && pipelineDef.notifications().email() != null) {
-                if (pipelineDef.notifications().email().onSuccess() != null) {
-                    build.setNotifyOnSuccess(String.join(",", pipelineDef.notifications().email().onSuccess()));
+        // Mark remaining pending/running steps as failed
+        if (build.getSteps() != null) {
+            for (BuildStep s : build.getSteps()) {
+                if (s.getStatus() == StepStatus.PENDING || s.getStatus() == StepStatus.RUNNING) {
+                    s.setStatus(StepStatus.FAILURE);
+                    s.setFinishedAt(finishedAt);
+                    buildStepRepository.save(s);
                 }
-                if (pipelineDef.notifications().email().onFailure() != null) {
-                    build.setNotifyOnFailure(String.join(",", pipelineDef.notifications().email().onFailure()));
-                }
-                buildRepository.save(build);
-            }
-
-            Path workspaceDir = Path.of(workspaceDirParent).resolve("build-" + build.getId());
-            log.info("Preparing workspace and cloning code into: {}", workspaceDir);
-
-            gitCloneService.cloneOrPull(build.getProject().getRepoUrl(), workspaceDir);
-
-            String ref = (build.getCommitSha() != null && !build.getCommitSha().isBlank())
-                    ? build.getCommitSha()
-                    : build.getBranch();
-
-            gitCloneService.checkoutCommit(workspaceDir, ref);
-
-            if (pipelineDef.cache() != null && pipelineDef.cache().paths() != null && !pipelineDef.cache().paths().isEmpty()) {
-                build.setCachedPaths(String.join(",", pipelineDef.cache().paths()));
-                buildRepository.save(build);
-                buildCacheService.restoreCache(build.getProject().getId(), workspaceDir, pipelineDef.cache().paths());
-            }
-
-            // Create step entities in database
-            List<BuildStep> steps = new ArrayList<>();
-            int order = 0;
-            for (StepDefinition stepDef : pipelineDef.steps()) {
-                BuildStep step = BuildStep.builder()
-                        .build(build)
-                        .name(stepDef.name())
-                        .stepOrder(order++)
-                        .dockerImage(stepDef.image())
-                        .commands(String.join("\n", stepDef.commands()))
-                        .status(StepStatus.PENDING)
-                        .build();
-                steps.add(step);
-            }
-
-            List<BuildStep> savedSteps = buildStepRepository.saveAll(steps);
-            build.setSteps(savedSteps);
-            build = buildRepository.save(build);
-
-            log.info("Pipeline parsed successfully. Starting execution of step 1 for build ID: {}", buildId);
-            startNextStep(build);
-
-        } catch (Exception e) {
-            log.error("Fatal error during build execution for ID: {}", buildId, e);
-            // Save fail state in database
-            if (build != null) {
-                build.setStatus(BuildStatus.FAILURE);
-                build.setFinishedAt(Instant.now());
-                buildRepository.save(build);
-                eventPublisher.publishEvent(new BuildCompletedEvent(buildId, BuildStatus.FAILURE, build.getFinishedAt()));
             }
         }
+
+        eventPublisher.publishEvent(new BuildCompletedEvent(buildId, BuildStatus.FAILURE, finishedAt));
     }
 
     @Override
@@ -311,79 +320,99 @@ public class BuildServiceImpl implements BuildService {
 
         } else if (status == StepStatus.SUCCESS) {
             log.info("Step {} completed successfully. Checking for next step", step.getName());
-            startNextStep(build);
+            startNextStep(buildId);
         }
     }
 
-    private void startNextStep(Build build) {
+    @Override
+    @Transactional
+    public void startNextStep(Long buildId) {
+        Build build = buildRepository.findById(buildId)
+                .orElseThrow(() -> new ResourceNotFoundException("Build not found with id " + buildId));
+        
         try {
             BuildStep nextStep = build.getSteps().stream()
-                .filter(step -> step.getStatus() == StepStatus.PENDING)
-                .findFirst()
-                .orElse(null);
+                    .filter(step -> step.getStatus() == StepStatus.PENDING)
+                    .findFirst()
+                    .orElse(null);
 
-        if (nextStep != null) {
-            log.info("Starting build step: {} (order {})", nextStep.getName(), nextStep.getStepOrder());
+            if (nextStep != null) {
+                log.info("Starting build step: {} (order {})", nextStep.getName(), nextStep.getStepOrder());
 
-            nextStep.setStatus(StepStatus.RUNNING);
-            nextStep.setStartedAt(Instant.now());
-            buildStepRepository.save(nextStep);
+                nextStep.setStatus(StepStatus.RUNNING);
+                nextStep.setStartedAt(Instant.now());
+                buildStepRepository.save(nextStep);
 
-            // Compute step workspace folder (shared workspace for all steps of this build)
-            Path workspaceDir = Path.of(workspaceDirParent).resolve("build-" + build.getId());
-
-            // Convert raw newline-separated commands from DB back into List<String>
-            List<String> commands = List.of(nextStep.getCommands().split("\n"));
-
-            // Map secrets to environment variables
-            java.util.Map<String, String> envVars = new java.util.HashMap<>();
-            if (build.getProject().getSecrets() != null) {
-                build.getProject().getSecrets().forEach(secret -> 
-                    envVars.put(secret.getName(), secretCryptoService.decrypt(secret.getValue()))
-                );
-            }
-
-            eventPublisher.publishEvent(new BuildStepStartedEvent(
-                    build.getId(),
-                    nextStep.getId(),
-                    nextStep.getName(),
-                    nextStep.getDockerImage(),
-                    commands,
-                    workspaceDir,
-                    envVars
-            ));
-        } else {
-            log.info("All steps completed successfully. Finalizing build ID: {}", build.getId());
-
-            build.setStatus(BuildStatus.SUCCESS);
-            Instant finishedAt = Instant.now();
-            build.setFinishedAt(finishedAt);
-            buildRepository.save(build);
-
-            if (build.getCachedPaths() != null && !build.getCachedPaths().isBlank()) {
+                // Compute step workspace folder (shared workspace for all steps of this build)
                 Path workspaceDir = Path.of(workspaceDirParent).resolve("build-" + build.getId());
-                buildCacheService.saveCache(build.getProject().getId(), workspaceDir, List.of(build.getCachedPaths().split(",")));
-            }
+
+                // Convert raw newline-separated commands from DB back into List<String>
+                List<String> commands = List.of(nextStep.getCommands().split("\n"));
+
+                // Map secrets to environment variables
+                java.util.Map<String, String> envVars = new java.util.HashMap<>();
+                if (build.getProject().getSecrets() != null) {
+                    build.getProject().getSecrets().forEach(secret ->
+                            envVars.put(secret.getName(), secretCryptoService.decrypt(secret.getValue()))
+                    );
+                }
+
+                // Deserialize secret files mapping
+                java.util.Map<String, String> secretFilesMap = new java.util.HashMap<>();
+                if (nextStep.getSecretFiles() != null && !nextStep.getSecretFiles().isBlank()) {
+                    try {
+                        List<SecretFileDefinition> definitions = objectMapper.readValue(
+                                nextStep.getSecretFiles(),
+                                objectMapper.getTypeFactory().constructCollectionType(List.class, SecretFileDefinition.class)
+                        );
+
+                        // Resolve decrypted values
+                        if (build.getProject().getSecrets() != null) {
+                            for (SecretFileDefinition def : definitions) {
+                                build.getProject().getSecrets().stream()
+                                        .filter(s -> s.getName().equalsIgnoreCase(def.secret()))
+                                        .findFirst()
+                                        .ifPresent(secret -> {
+                                            String decrypted = secretCryptoService.decrypt(secret.getValue());
+                                            secretFilesMap.put(def.path(), decrypted);
+                                        });
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error("Failed to deserialize or resolve secretFiles for step ID: {}", nextStep.getId(), e);
+                    }
+                }
+
+                eventPublisher.publishEvent(new BuildStepStartedEvent(
+                        build.getId(),
+                        nextStep.getId(),
+                        nextStep.getName(),
+                        nextStep.getDockerImage(),
+                        commands,
+                        workspaceDir,
+                        envVars,
+                        nextStep.isPrivileged(),
+                        nextStep.isDockerSocket(),
+                        secretFilesMap
+                ));
+            } else {
+                log.info("All steps completed successfully. Finalizing build ID: {}", build.getId());
+
+                build.setStatus(BuildStatus.SUCCESS);
+                Instant finishedAt = Instant.now();
+                build.setFinishedAt(finishedAt);
+                buildRepository.save(build);
+
+                if (build.getCachedPaths() != null && !build.getCachedPaths().isBlank()) {
+                    Path workspaceDir = Path.of(workspaceDirParent).resolve("build-" + build.getId());
+                    buildCacheService.saveCache(build.getProject().getId(), workspaceDir, List.of(build.getCachedPaths().split(",")));
+                }
 
                 eventPublisher.publishEvent(new BuildCompletedEvent(build.getId(), BuildStatus.SUCCESS, finishedAt));
             }
         } catch (Exception e) {
             log.error("Fatal error starting next step for build ID: {}. Failing build.", build.getId(), e);
-            Instant finishedAt = Instant.now();
-            build.setStatus(BuildStatus.FAILURE);
-            build.setFinishedAt(finishedAt);
-            buildRepository.save(build);
-            
-            // Mark remaining steps as failed
-            for (BuildStep s : build.getSteps()) {
-                if (s.getStatus() == StepStatus.PENDING || s.getStatus() == StepStatus.RUNNING) {
-                    s.setStatus(StepStatus.FAILURE);
-                    s.setFinishedAt(finishedAt);
-                    buildStepRepository.save(s);
-                }
-            }
-            
-            eventPublisher.publishEvent(new BuildCompletedEvent(build.getId(), BuildStatus.FAILURE, finishedAt));
+            failBuild(buildId, e.getMessage());
         }
     }
 }

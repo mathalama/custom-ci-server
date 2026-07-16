@@ -47,7 +47,25 @@ class DockerRunnerServiceTest {
         dockerClient = factory.dockerClient();
 
         eventPublisher = mock(ApplicationEventPublisher.class);
-        dockerRunnerService = new DockerRunnerService(dockerClient, runnerConfig, eventPublisher);
+        
+        var runnerRepository = mock(dev.mathalama.rabotyagaci.runner.repository.RunnerRepository.class);
+        when(runnerRepository.findAll()).thenReturn(java.util.List.of());
+        
+        var runnerWebSocketHandler = mock(dev.mathalama.rabotyagaci.runner.websocket.RunnerWebSocketHandler.class);
+        var buildRepository = mock(dev.mathalama.rabotyagaci.build.repository.BuildRepository.class);
+        var buildStepRepository = mock(dev.mathalama.rabotyagaci.build.repository.BuildStepRepository.class);
+        var secretCryptoService = mock(dev.mathalama.rabotyagaci.project.service.impl.SecretCryptoService.class);
+
+        dockerRunnerService = new DockerRunnerService(
+            dockerClient, 
+            runnerConfig, 
+            eventPublisher,
+            runnerRepository,
+            runnerWebSocketHandler,
+            buildRepository,
+            buildStepRepository,
+            secretCryptoService
+        );
         dockerRunnerService.init();
     }
 
@@ -72,6 +90,9 @@ class DockerRunnerServiceTest {
                 "alpine:latest",
                 List.of("echo 'Hello from RabotyagaCI'", "echo 'Line 2'"),
                 workspaceDir,
+                Map.of(),
+                false,
+                false,
                 Map.of()
         );
 
@@ -126,6 +147,9 @@ class DockerRunnerServiceTest {
                 "alpine:latest",
                 List.of("exit 42"),
                 workspaceDir,
+                Map.of(),
+                false,
+                false,
                 Map.of()
         );
 

@@ -2,46 +2,24 @@ package dev.mathalama.rabotyagaci.pipeline.service.impl;
 
 import dev.mathalama.rabotyagaci.pipeline.api.dto.PipelineDefinition;
 import dev.mathalama.rabotyagaci.pipeline.api.dto.StepDefinition;
-import dev.mathalama.rabotyagaci.pipeline.config.PipelineConfig;
 import dev.mathalama.rabotyagaci.pipeline.exception.PipelineParseException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class PipelineServiceImplTest {
 
-    @Mock
-    private GitCloneService gitCloneService;
-
-    @Mock
-    private PipelineConfig pipelineConfig;
-
-    @InjectMocks
-    private PipelineServiceImpl pipelineService;
-
-    @BeforeEach
-    void setUp() {
-        lenient().when(pipelineConfig.getCloneDir()).thenReturn(System.getProperty("java.io.tmpdir"));
-    }
+    private final PipelineServiceImpl pipelineService = new PipelineServiceImpl();
 
     @Test
-    void parse_ShouldReturnDefinition_WhenYamlIsValid() {
-        String repoUrl = "https://github.com/user/repo";
-        String branch = "main";
-        String commitSha = "d3b07384d113edec49eaa6238ad5ff00";
+    void parse_ShouldReturnDefinition_WhenYamlIsValid(@TempDir Path tempDir) throws IOException {
         String configPath = ".rabotyaga.yaml";
-        
         String validYaml = """
                 version: 1
                 name: "Test Build Pipeline"
@@ -55,15 +33,15 @@ class PipelineServiceImplTest {
                       - "target/*.jar"
                 """;
 
-        when(gitCloneService.readFile(any(Path.class), eq(configPath))).thenReturn(validYaml);
+        Files.writeString(tempDir.resolve(configPath), validYaml);
 
-        PipelineDefinition result = pipelineService.parse(repoUrl, branch, commitSha, configPath);
+        PipelineDefinition result = pipelineService.parse(tempDir, configPath);
 
         assertNotNull(result);
         assertEquals(1, result.version());
         assertEquals("Test Build Pipeline", result.name());
         assertEquals(1, result.steps().size());
-        
+
         StepDefinition step = result.steps().get(0);
         assertEquals("build-step", step.name());
         assertEquals("maven:3.9-eclipse-temurin-21", step.image());
@@ -72,13 +50,10 @@ class PipelineServiceImplTest {
         assertEquals("mvn package", step.commands().get(1));
         assertEquals(1, step.artifacts().size());
         assertEquals("target/*.jar", step.artifacts().get(0));
-
-        verify(gitCloneService).cloneOrPull(eq(repoUrl), any(Path.class));
-        verify(gitCloneService).checkoutCommit(any(Path.class), eq(commitSha));
     }
 
     @Test
-    void parse_ShouldThrowException_WhenVersionIsMissing() {
+    void parse_ShouldThrowException_WhenVersionIsMissing(@TempDir Path tempDir) throws IOException {
         String configPath = ".rabotyaga.yaml";
         String invalidYaml = """
                 name: "Missing Version"
@@ -89,14 +64,14 @@ class PipelineServiceImplTest {
                       - "echo"
                 """;
 
-        when(gitCloneService.readFile(any(Path.class), eq(configPath))).thenReturn(invalidYaml);
+        Files.writeString(tempDir.resolve(configPath), invalidYaml);
 
-        assertThrows(PipelineParseException.class, () -> 
-                pipelineService.parse("repo", "branch", "sha", configPath));
+        assertThrows(PipelineParseException.class, () ->
+                pipelineService.parse(tempDir, configPath));
     }
 
     @Test
-    void parse_ShouldThrowException_WhenStepsAreEmpty() {
+    void parse_ShouldThrowException_WhenStepsAreEmpty(@TempDir Path tempDir) throws IOException {
         String configPath = ".rabotyaga.yaml";
         String invalidYaml = """
                 version: 1
@@ -104,14 +79,14 @@ class PipelineServiceImplTest {
                 steps: []
                 """;
 
-        when(gitCloneService.readFile(any(Path.class), eq(configPath))).thenReturn(invalidYaml);
+        Files.writeString(tempDir.resolve(configPath), invalidYaml);
 
-        assertThrows(PipelineParseException.class, () -> 
-                pipelineService.parse("repo", "branch", "sha", configPath));
+        assertThrows(PipelineParseException.class, () ->
+                pipelineService.parse(tempDir, configPath));
     }
 
     @Test
-    void parse_ShouldThrowException_WhenStepMissingImage() {
+    void parse_ShouldThrowException_WhenStepMissingImage(@TempDir Path tempDir) throws IOException {
         String configPath = ".rabotyaga.yaml";
         String invalidYaml = """
                 version: 1
@@ -122,14 +97,14 @@ class PipelineServiceImplTest {
                       - "echo"
                 """;
 
-        when(gitCloneService.readFile(any(Path.class), eq(configPath))).thenReturn(invalidYaml);
+        Files.writeString(tempDir.resolve(configPath), invalidYaml);
 
-        assertThrows(PipelineParseException.class, () -> 
-                pipelineService.parse("repo", "branch", "sha", configPath));
+        assertThrows(PipelineParseException.class, () ->
+                pipelineService.parse(tempDir, configPath));
     }
 
     @Test
-    void parse_ShouldThrowException_WhenStepMissingCommands() {
+    void parse_ShouldThrowException_WhenStepMissingCommands(@TempDir Path tempDir) throws IOException {
         String configPath = ".rabotyaga.yaml";
         String invalidYaml = """
                 version: 1
@@ -139,9 +114,9 @@ class PipelineServiceImplTest {
                     image: "alpine"
                 """;
 
-        when(gitCloneService.readFile(any(Path.class), eq(configPath))).thenReturn(invalidYaml);
+        Files.writeString(tempDir.resolve(configPath), invalidYaml);
 
-        assertThrows(PipelineParseException.class, () -> 
-                pipelineService.parse("repo", "branch", "sha", configPath));
+        assertThrows(PipelineParseException.class, () ->
+                pipelineService.parse(tempDir, configPath));
     }
 }

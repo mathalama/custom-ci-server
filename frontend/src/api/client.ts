@@ -124,3 +124,16 @@ export const getGithubRepoContents = (owner: string, repo: string, ref?: string)
 export const getSystemInfo = () =>
   api.get<ApiResponse<{ version: string; status: string }>>('/system/info')
 
+// ===== Runners =====
+export const getRunners = () =>
+  api.get<ApiResponse<any[]>>('/runners')
+
+export const getRunner = (id: number) =>
+  api.get<ApiResponse<any>>(`/runners/${id}`)
+
+export const createRunner = (data: any) =>
+  api.post<ApiResponse<any>>('/runners', data)
+
+export const deleteRunner = (id: number) =>
+  api.delete(`/runners/${id}`)
+

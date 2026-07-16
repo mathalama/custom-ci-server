@@ -39,6 +39,11 @@ public class DockerRunnerService {
     private final DockerClient dockerClient;
     private final RunnerConfig runnerConfig;
     private final ApplicationEventPublisher eventPublisher;
+    private final dev.mathalama.rabotyagaci.runner.repository.RunnerRepository runnerRepository;
+    private final dev.mathalama.rabotyagaci.runner.websocket.RunnerWebSocketHandler runnerWebSocketHandler;
+    private final dev.mathalama.rabotyagaci.build.repository.BuildRepository buildRepository;
+    private final dev.mathalama.rabotyagaci.build.repository.BuildStepRepository buildStepRepository;
+    private final dev.mathalama.rabotyagaci.project.service.impl.SecretCryptoService secretCryptoService;
 
     private final java.util.concurrent.ConcurrentHashMap<Long, String> activeContainers = new java.util.concurrent.ConcurrentHashMap<>();
     private java.util.concurrent.Semaphore buildSemaphore;
@@ -65,7 +70,52 @@ public class DockerRunnerService {
     @EventListener
     public void handleBuildStepStarted(BuildStepStartedEvent event) {
         log.info("Received request to start step: {} for build ID: {}", event.stepName(), event.buildId());
-        
+
+        // Try to find an available online remote runner
+        java.util.Optional<dev.mathalama.rabotyagaci.runner.domain.Runner> runnerOpt = runnerRepository.findAll().stream()
+                .filter(r -> r.getStatus() == dev.mathalama.rabotyagaci.runner.domain.RunnerStatus.ONLINE)
+                .findFirst();
+
+        if (runnerOpt.isPresent()) {
+            dev.mathalama.rabotyagaci.runner.domain.Runner runner = runnerOpt.get();
+            log.info("Found online remote runner: '{}' at {}. Dispatching step {}", runner.getName(), runner.getHost(), event.stepName());
+
+            // Mark step as running on this runner in DB
+            dev.mathalama.rabotyagaci.build.domain.BuildStep step = buildStepRepository.findById(event.stepId()).orElse(null);
+            if (step != null) {
+                step.setRunner(runner);
+                buildStepRepository.save(step);
+            }
+
+            try {
+                java.util.Map<String, Object> taskPayload = new java.util.HashMap<>();
+                taskPayload.put("action", "EXECUTE_STEP");
+                taskPayload.put("buildId", event.buildId());
+                taskPayload.put("stepId", event.stepId());
+                taskPayload.put("stepName", event.stepName());
+                taskPayload.put("dockerImage", event.dockerImage());
+                taskPayload.put("commands", event.commands());
+                taskPayload.put("privileged", event.privileged());
+                taskPayload.put("dockerSocket", event.dockerSocket());
+                taskPayload.put("secretFiles", event.secretFiles());
+                taskPayload.put("envVars", event.environmentVariables());
+
+                // Find build to get git URL and token
+                dev.mathalama.rabotyagaci.build.domain.Build build = buildRepository.findById(event.buildId()).orElse(null);
+                if (build != null) {
+                    taskPayload.put("repoUrl", build.getProject().getRepoUrl());
+                    taskPayload.put("branch", build.getBranch());
+                    taskPayload.put("commitSha", build.getCommitSha());
+                    taskPayload.put("gitToken", resolveGitToken(build.getProject()));
+                }
+
+                runnerWebSocketHandler.executeTask(runner.getId(), taskPayload);
+                return; // Remote delegation succeeded, exit method!
+            } catch (Exception e) {
+                log.error("Failed to delegate task to remote runner. Falling back to local execution.", e);
+            }
+        }
+
         try {
             buildSemaphore.acquire();
         } catch (InterruptedException e) {
@@ -87,6 +137,36 @@ public class DockerRunnerService {
                 Files.createDirectories(workspacePath);
             }
 
+            // Write secret files to workspace if configured
+            if (event.secretFiles() != null && !event.secretFiles().isEmpty()) {
+                log.info("Writing {} secret files for step {}", event.secretFiles().size(), event.stepName());
+                for (java.util.Map.Entry<String, String> entry : event.secretFiles().entrySet()) {
+                    String relativePath = entry.getKey();
+                    String content = entry.getValue();
+                    
+                    Path targetFilePath = workspacePath.resolve(relativePath).normalize();
+                    // Prevent path traversal attack
+                    if (!targetFilePath.startsWith(workspacePath)) {
+                        throw new DockerExecutionException("Invalid secret file path: " + relativePath);
+                    }
+                    
+                    Files.createDirectories(targetFilePath.getParent());
+                    Files.writeString(targetFilePath, content);
+                    
+                    // Set file permissions to 600 for safety (e.g. for SSH keys)
+                    if (java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+                        try {
+                            Files.setPosixFilePermissions(
+                                    targetFilePath,
+                                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
+                            );
+                        } catch (Exception e) {
+                            log.warn("Failed to set POSIX permissions for secret file {}: {}", targetFilePath, e.getMessage());
+                        }
+                    }
+                }
+            }
+
             // 2. Pull the required image
             pullImageIfNeeded(event.dockerImage());
 
@@ -95,12 +175,24 @@ public class DockerRunnerService {
             Volume containerWorkspaceVolume = new Volume("/app-data");
             Bind workspaceBind = new Bind(runnerConfig.getVolumeName(), containerWorkspaceVolume);
 
+            java.util.List<Bind> bindsList = new java.util.ArrayList<>();
+            bindsList.add(workspaceBind);
+            if (event.dockerSocket() || event.privileged()) {
+                log.info("Mounting Docker socket for step: {}", event.stepName());
+                bindsList.add(new Bind("/var/run/docker.sock", new Volume("/var/run/docker.sock")));
+            }
+
             // 4. Configure host limits
             HostConfig hostConfig = HostConfig.newHostConfig()
-                    .withBinds(workspaceBind)
+                    .withBinds(bindsList.toArray(new Bind[0]))
                     .withMemory(parseMemoryLimit(runnerConfig.getContainerMemoryLimit()))
                     .withNanoCPUs(parseCpuLimit(runnerConfig.getContainerCpuLimit()))
                     .withNetworkMode(runnerConfig.getNetworkMode());
+
+            if (event.privileged()) {
+                log.info("Running step {} in privileged mode", event.stepName());
+                hostConfig.withPrivileged(true);
+            }
 
             // 5. Build commands shell script
             // Map the backend's internal path to the container's mounted volume path
@@ -268,5 +360,16 @@ public class DockerRunnerService {
             return null;
         }
         return (long) (cpuLimit * 1_000_000_000L); // HostConfig.withNanoCPUs expects cpu count * 1e9
+    }
+
+    private String resolveGitToken(dev.mathalama.rabotyagaci.project.domain.Project project) {
+        if (project.getGithubToken() != null && !project.getGithubToken().isBlank()) {
+            try {
+                return secretCryptoService.decrypt(project.getGithubToken());
+            } catch (Exception e) {
+                log.error("Failed to decrypt github token for project {}", project.getName(), e);
+            }
+        }
+        return null;
     }
 }

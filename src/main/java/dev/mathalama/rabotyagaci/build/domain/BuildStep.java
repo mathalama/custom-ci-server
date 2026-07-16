@@ -49,4 +49,17 @@ public class BuildStep {
 
     @Column(name = "duration_ms")
     private Long durationMs;
+
+    @Column(nullable = false)
+    private boolean privileged;
+
+    @Column(name = "docker_socket", nullable = false)
+    private boolean dockerSocket;
+
+    @Column(name = "secret_files", columnDefinition = "TEXT")
+    private String secretFiles;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "runner_id")
+    private dev.mathalama.rabotyagaci.runner.domain.Runner runner;
 }

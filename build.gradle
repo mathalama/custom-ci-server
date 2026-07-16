@@ -43,6 +43,9 @@ dependencies {
     // Git
     implementation 'org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r'
 
+    // SSH support for remote provisioning
+    implementation 'com.github.mwiede:jsch:0.2.20'
+
     // YAML
     implementation 'tools.jackson.dataformat:jackson-dataformat-yaml'
 
@@ -80,3 +83,11 @@ jacocoTestReport {
         html.required = true
     }
 }
+
+tasks.register('buildAgent', Copy) {
+    dependsOn ':agent:jar'
+    from 'agent/build/libs/agent.jar'
+    into 'src/main/resources/static'
+}
+
+processResources.dependsOn buildAgent

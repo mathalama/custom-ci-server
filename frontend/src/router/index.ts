@@ -36,6 +36,11 @@ const router = createRouter({
       component: () => import('@/pages/CallbackPage.vue'),
     },
     {
+      path: '/runners',
+      name: 'runners',
+      component: () => import('@/pages/RunnersPage.vue'),
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('@/pages/SettingsPage.vue'),
