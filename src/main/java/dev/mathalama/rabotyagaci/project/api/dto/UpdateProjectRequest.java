@@ -12,5 +12,6 @@ public record UpdateProjectRequest(
         String defaultBranch,
         String pipelineConfigPath,
         Boolean isActive,
-        String githubToken
+        String githubToken,
+        Boolean clearGithubToken
 ) {}

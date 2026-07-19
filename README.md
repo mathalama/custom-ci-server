@@ -68,6 +68,8 @@ graph TD
    ```
    *(This task automatically compiles `agent.jar` and packages it into the Master backend's static resources for automatic provisioning).*
 
+    If you run the backend directly from an IDE on Windows, set `SPRING_PROFILES_ACTIVE=dev` so it uses the Windows Docker pipe configuration.
+
 3. Run the container cluster via Docker Compose:
    ```bash
    docker compose up -d --build

@@ -1,12 +1,8 @@
 package dev.mathalama.rabotyagaci.auth.config;
 
-import dev.mathalama.rabotyagaci.common.api.dto.ApiResponse;
-import tools.jackson.databind.json.JsonMapper;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.time.Instant;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
@@ -15,8 +11,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.time.Instant;
+import dev.mathalama.rabotyagaci.common.api.dto.ApiResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Component
@@ -51,7 +52,7 @@ public class ApiKeyFilter extends OncePerRequestFilter {
         if (apiKey.equals(requestKey)) {
             filterChain.doFilter(request, response);
         } else {
-            log.warn("Unauthorized request to URL: {} with API key: {}", uri, requestKey);
+            log.warn("Unauthorized request to URL: {}", uri);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 

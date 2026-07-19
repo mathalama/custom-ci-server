@@ -6,6 +6,7 @@ import dev.mathalama.rabotyagaci.build.domain.StepStatus;
 import dev.mathalama.rabotyagaci.build.domain.TriggerType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import java.util.List;
 
 public interface BuildService {
 
@@ -23,6 +24,11 @@ public interface BuildService {
      * Fetches builds of a project with pagination.
      */
     Page<BuildResponse> getAll(Long projectId, Pageable pageable);
+
+    /**
+     * Fetches recent builds across all projects (optimized, no N+1).
+     */
+    List<BuildResponse> getRecentBuilds(int limit);
 
     /**
      * Cancels a running build.

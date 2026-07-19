@@ -33,14 +33,37 @@ const projectName = ref('');
 const logs = ref('');
 const searchQuery = ref('');
 const stepStartTimes = new Map<number, number>();
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+// Simple debounced filter cache
+const filteredLogsCache = ref('');
+const lastSearchQuery = ref('');
 
 const filteredLogs = computed(() => {
-  if (!searchQuery.value) return logs.value;
+  if (!searchQuery.value) {
+    lastSearchQuery.value = '';
+    filteredLogsCache.value = logs.value;
+    return logs.value;
+  }
+  if (searchQuery.value === lastSearchQuery.value) {
+    return filteredLogsCache.value;
+  }
   const query = searchQuery.value.toLowerCase();
-  return logs.value
+  filteredLogsCache.value = logs.value
     .split('\n')
     .filter(line => line.toLowerCase().includes(query))
     .join('\n');
+  lastSearchQuery.value = searchQuery.value;
+  return filteredLogsCache.value;
+});
+
+// Debounce search query
+watch(searchQuery, () => {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    // Trigger computed re-evaluation by accessing it
+    void filteredLogs.value;
+  }, 300);
 });
 
 const fetchLogs = async (stepId: number) => {
@@ -50,6 +73,9 @@ const fetchLogs = async (stepId: number) => {
       const historical = res.data.data.content;
       // Combine lines preserving raw content
       logs.value = historical.map((logLine: any) => logLine.content).join('');
+      // Reset filter cache when logs change
+      lastSearchQuery.value = '';
+      filteredLogsCache.value = logs.value;
     }
   } catch (e) {
     console.error("Failed to load historical logs for step", stepId, e);

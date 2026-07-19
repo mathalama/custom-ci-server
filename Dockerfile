@@ -1,6 +1,15 @@
-# Skip builder stage since network prevents gradle download inside Docker on this host
+FROM gradle:jdk21 AS build
+WORKDIR /workspace
+
+COPY gradlew build.gradle settings.gradle ./
+COPY gradle ./gradle
+COPY src ./src
+COPY agent ./agent
+
+RUN chmod +x gradlew && ./gradlew bootJar --no-daemon
+
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY build/libs/*.jar app.jar
+COPY --from=build /workspace/build/libs/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

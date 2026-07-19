@@ -108,7 +108,7 @@ class ProjectControllerTest {
     @Test
     void update_ShouldReturnUpdatedProject_WhenValid() throws Exception {
         Long id = 1L;
-        UpdateProjectRequest request = new UpdateProjectRequest("new-name", null, null, null, null, null, null);
+        UpdateProjectRequest request = new UpdateProjectRequest("new-name", null, null, null, null, null, null, null);
         ProjectResponse response = new ProjectResponse(id, "new-name", "https://github.com/my/repo", GitProvider.GITHUB, "main", "secret", ".rabotyaga.yaml", true, null, Instant.now(), Instant.now());
 
         when(projectService.update(eq(id), any(UpdateProjectRequest.class))).thenReturn(response);

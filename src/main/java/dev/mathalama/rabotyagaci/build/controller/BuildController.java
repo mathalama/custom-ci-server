@@ -13,6 +13,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,6 +40,13 @@ public class BuildController {
             @RequestParam Long projectId,
             @PageableDefault(size = 10) Pageable pageable) {
         PagedResponse<BuildResponse> response = PagedResponse.from(buildService.getAll(projectId, pageable));
+        return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    @GetMapping("/api/v1/builds/recent")
+    public ResponseEntity<ApiResponse<List<BuildResponse>>> getRecentBuilds(
+            @RequestParam(defaultValue = "10") int limit) {
+        List<BuildResponse> response = buildService.getRecentBuilds(limit);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 

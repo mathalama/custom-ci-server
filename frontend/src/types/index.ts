@@ -77,6 +77,17 @@ export interface CreateProjectRequest {
   githubToken?: string
 }
 
+export interface UpdateProjectRequest {
+  name?: string
+  repoUrl?: string
+  gitProvider?: GitProvider
+  defaultBranch?: string
+  pipelineConfigPath?: string
+  isActive?: boolean
+  githubToken?: string
+  clearGithubToken?: boolean
+}
+
 export interface TriggerBuildRequest {
   branch: string
   commitSha: string

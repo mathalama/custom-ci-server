@@ -42,12 +42,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getProjects, getBuilds } from '@/api/client'
-import type { ProjectResponse, BuildResponse } from '@/types'
+import { getRecentBuilds } from '@/api/client'
+import type { BuildResponse } from '@/types'
 import BuildCard from '@/components/BuildCard.vue'
 import Icon from '@/components/Icon.vue'
 
-const projects = ref<ProjectResponse[]>([])
+const projects = ref<any[]>([])
 const recentBuilds = ref<BuildResponse[]>([])
 const loading = ref(true)
 
@@ -57,18 +57,8 @@ const runningCount = computed(() => recentBuilds.value.filter((b: BuildResponse)
 
 onMounted(async () => {
   try {
-    const projRes = await getProjects(0, 100)
-    projects.value = projRes.data.data.content
-
-    // Собираем билды из всех проектов
-    const allBuilds: BuildResponse[] = []
-    for (const project of projects.value) {
-      const buildRes = await getBuilds(project.id, 0, 5)
-      allBuilds.push(...buildRes.data.data.content)
-    }
-    recentBuilds.value = allBuilds
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 10)
+    const buildRes = await getRecentBuilds(10)
+    recentBuilds.value = buildRes.data.data
   } catch (e) {
     console.error('Failed to load dashboard data', e)
   } finally {

@@ -2,12 +2,15 @@ spring:
   application:
     name: rabotyagaCI
 
-  profiles:
-    active: dev
-
   threads:
     virtual:
       enabled: true
+
+  cache:
+    type: simple
+    cache-names:
+      - projects
+      - builds
 
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rabotyagaci}
@@ -76,7 +79,7 @@ rabotyagaci:
     cron: "0 0 4 * * *" # Every day at 4:00 AM
   auth:
     enabled: false
-    api-key: "super-secret-key-change-me"
+    api-key: ${RABOTYAGACI_API_KEY:}
   security:
     master-key: ${RABOTYAGACI_MASTER_KEY}
   github:

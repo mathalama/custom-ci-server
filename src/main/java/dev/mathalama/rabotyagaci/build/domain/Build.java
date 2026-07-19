@@ -63,7 +63,7 @@ public class Build {
     private String cachedPaths;
 
     @Builder.Default
-    @OneToMany(mappedBy = "build", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "build", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @OrderBy("stepOrder ASC")
     private List<BuildStep> steps = new ArrayList<>();
 }

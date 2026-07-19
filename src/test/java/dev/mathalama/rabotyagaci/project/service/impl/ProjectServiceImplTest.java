@@ -36,6 +36,9 @@ class ProjectServiceImplTest {
     @Mock
     private ProjectMapper projectMapper;
 
+    @Mock
+    private SecretCryptoService secretCryptoService;
+
     @InjectMocks
     private ProjectServiceImpl projectService;
 
@@ -126,7 +129,7 @@ class ProjectServiceImplTest {
     @Test
     void update_ShouldUpdateProject_WhenValid() {
         Long id = 1L;
-        UpdateProjectRequest request = new UpdateProjectRequest("new-name", null, null, null, null, null, null);
+        UpdateProjectRequest request = new UpdateProjectRequest("new-name", null, null, null, null, null, null, null);
         Project project = Project.builder()
                 .id(id)
                 .name("old-name")
@@ -150,9 +153,61 @@ class ProjectServiceImplTest {
     }
 
     @Test
+    void update_ShouldClearGithubToken_WhenClearFlagIsTrue() {
+        Long id = 1L;
+        UpdateProjectRequest request = new UpdateProjectRequest(null, null, null, null, null, null, null, true);
+        Project project = Project.builder()
+                .id(id)
+                .githubToken("encrypted-token")
+                .build();
+        Project savedProject = Project.builder()
+                .id(id)
+                .githubToken(null)
+                .build();
+        ProjectResponse expectedResponse = new ProjectResponse(id, "old-name", "https://github.com/test/repo", GitProvider.GITHUB, "main", null, ".rabotyaga.yaml", true, null, Instant.now(), Instant.now());
+
+        when(projectRepository.findById(id)).thenReturn(Optional.of(project));
+        when(projectRepository.save(project)).thenReturn(savedProject);
+        when(projectMapper.toResponse(savedProject)).thenReturn(expectedResponse);
+
+        ProjectResponse response = projectService.update(id, request);
+
+        assertNotNull(response);
+        assertNull(project.getGithubToken());
+        verify(projectMapper).updateEntity(project, request);
+        verifyNoInteractions(secretCryptoService);
+    }
+
+    @Test
+    void update_ShouldEncryptGithubToken_WhenNewTokenProvided() {
+        Long id = 1L;
+        UpdateProjectRequest request = new UpdateProjectRequest(null, null, null, null, null, null, "plain-token", false);
+        Project project = Project.builder()
+                .id(id)
+                .githubToken(null)
+                .build();
+        Project savedProject = Project.builder()
+                .id(id)
+                .githubToken("encrypted-token")
+                .build();
+        ProjectResponse expectedResponse = new ProjectResponse(id, "old-name", "https://github.com/test/repo", GitProvider.GITHUB, "main", "********", ".rabotyaga.yaml", true, null, Instant.now(), Instant.now());
+
+        when(projectRepository.findById(id)).thenReturn(Optional.of(project));
+        when(secretCryptoService.encrypt("plain-token")).thenReturn("encrypted-token");
+        when(projectRepository.save(project)).thenReturn(savedProject);
+        when(projectMapper.toResponse(savedProject)).thenReturn(expectedResponse);
+
+        ProjectResponse response = projectService.update(id, request);
+
+        assertNotNull(response);
+        assertEquals("encrypted-token", project.getGithubToken());
+        verify(secretCryptoService).encrypt("plain-token");
+    }
+
+    @Test
     void update_ShouldThrowBusinessException_WhenNewNameExists() {
         Long id = 1L;
-        UpdateProjectRequest request = new UpdateProjectRequest("existing-name", null, null, null, null, null, null);
+        UpdateProjectRequest request = new UpdateProjectRequest("existing-name", null, null, null, null, null, null, null);
         Project project = Project.builder()
                 .id(id)
                 .name("old-name")

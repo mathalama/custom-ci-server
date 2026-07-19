@@ -209,6 +209,16 @@ public class BuildServiceImpl implements BuildService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<BuildResponse> getRecentBuilds(int limit) {
+        log.debug("Fetching {} recent builds across all projects", limit);
+        return buildRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")).stream()
+                .limit(limit)
+                .map(buildMapper::toResponse)
+                .toList();
+    }
+
+    @Override
     public void cancel(Long id) {
         log.info("Request to cancel build ID: {}", id);
         Build build = buildRepository.findById(id)

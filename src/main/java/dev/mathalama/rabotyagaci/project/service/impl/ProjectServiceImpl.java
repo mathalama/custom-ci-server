@@ -1,5 +1,14 @@
 package dev.mathalama.rabotyagaci.project.service.impl;
 
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+
 import dev.mathalama.rabotyagaci.common.exception.BusinessException;
 import dev.mathalama.rabotyagaci.common.exception.ResourceNotFoundException;
 import dev.mathalama.rabotyagaci.project.api.ProjectService;
@@ -11,12 +20,6 @@ import dev.mathalama.rabotyagaci.project.mapper.ProjectMapper;
 import dev.mathalama.rabotyagaci.project.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -61,6 +64,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "projects", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<ProjectResponse> getAll(Pageable pageable) {
         log.debug("Fetching all projects with pagination");
         return projectRepository.findAll(pageable)
@@ -68,6 +72,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @CacheEvict(value = "projects", allEntries = true)
     public ProjectResponse update(Long id, UpdateProjectRequest request) {
         log.info("Updating project with ID: {}", id);
 
@@ -81,11 +86,12 @@ public class ProjectServiceImpl implements ProjectService {
 
         projectMapper.updateEntity(project, request);
 
-        // Encrypt GitHub token if it was updated in the request
-        if (request.githubToken() != null) {
+        if (Boolean.TRUE.equals(request.clearGithubToken())) {
+            project.setGithubToken(null);
+        } else if (request.githubToken() != null) {
             if (request.githubToken().isBlank()) {
                 project.setGithubToken(null);
-            } else if (!request.githubToken().equals("********")) { // Prevent re-encrypting mask
+            } else {
                 project.setGithubToken(secretCryptoService.encrypt(request.githubToken()));
             }
         }

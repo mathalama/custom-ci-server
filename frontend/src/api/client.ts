@@ -28,7 +28,7 @@ export const getProject = (id: number) =>
 export const createProject = (data: CreateProjectRequest) =>
   api.post<ApiResponse<ProjectResponse>>('/projects', data)
 
-export const updateProject = (id: number, data: Partial<CreateProjectRequest>) =>
+export const updateProject = (id: number, data: UpdateProjectRequest) =>
   api.put<ApiResponse<ProjectResponse>>(`/projects/${id}`, data)
 
 export const deleteProject = (id: number) =>
@@ -48,6 +48,11 @@ export const deleteSecret = (projectId: number, secretId: number) =>
 export const getBuilds = (projectId: number, page = 0, size = 20) =>
   api.get<ApiResponse<PagedResponse<BuildResponse>>>('/builds', {
     params: { projectId, page, size },
+  })
+
+export const getRecentBuilds = (limit: number = 10) =>
+  api.get<ApiResponse<BuildResponse[]>>('/builds/recent', {
+    params: { limit },
   })
 
 export const getBuild = (id: number) =>
