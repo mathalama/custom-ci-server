@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'dev.mathalama'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // WebSocket client
+    implementation 'org.java-websocket:Java-WebSocket:1.5.7'
+
+    // Docker Client
+    implementation 'com.github.docker-java:docker-java:3.7.1'
+    implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.7.1'
+
+    // Git
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r'
+
+    // JSON
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+
+    // Logger
+    implementation 'org.slf4j:slf4j-simple:2.0.16'
+}
+
+application {
+    mainClass = 'dev.mathalama.rabotyagaci.agent.AgentApplication'
+}
+
+jar {
+    archiveFileName = 'agent.jar'
+    manifest {
+        attributes(
+            'Main-Class': 'dev.mathalama.rabotyagaci.agent.AgentApplication'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
