@@ -117,7 +117,7 @@ import {
   getGithubProfile,
   getSystemInfo
 } from '@/api/client'
-import Icon from '@/components/Icon.vue'
+import Icon from '@/components/common/Icon.vue'
 
 const error = ref('')
 const oAuthClientId = ref('')

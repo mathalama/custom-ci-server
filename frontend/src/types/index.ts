@@ -1,8 +1,7 @@
-// Зеркало backend DTO
-export type BuildStatus = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILURE' | 'CANCELLED'
-export type StepStatus = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILURE' | 'SKIPPED'
-export type TriggerType = 'WEBHOOK' | 'MANUAL' | 'SCHEDULE'
-export type GitProvider = 'GITHUB' | 'GITLAB' | 'GITEA'
+export * from './project'
+export * from './build'
+export * from './runner'
+export * from './websocket'
 
 export interface ApiResponse<T> {
   success: boolean
@@ -20,87 +19,10 @@ export interface PagedResponse<T> {
   last: boolean
 }
 
-export interface ProjectResponse {
-  id: number
-  name: string
-  repoUrl: string
-  gitProvider: GitProvider
-  defaultBranch: string
-  webhookSecret: string
-  pipelineConfigPath: string
-  isActive: boolean
-  githubToken?: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface BuildStepResponse {
-  id: number
-  name: string
-  stepOrder: number
-  dockerImage: string
-  commands: string
-  status: StepStatus
-  exitCode: number | null
-  startedAt: string | null
-  finishedAt: string | null
-  durationMs: number | null
-}
-
-export interface BuildResponse {
-  id: number
-  projectId: number
-  commitSha: string
-  branch: string
-  triggerType: TriggerType
-  status: BuildStatus
-  startedAt: string | null
-  finishedAt: string | null
-  createdAt: string
-  steps: BuildStepResponse[]
-}
-
-export interface BuildArtifact {
-  id: number
-  fileName: string
-  fileSize: number
-  contentType: string
-  createdAt: string
-}
-
-export interface CreateProjectRequest {
-  name: string
-  repoUrl: string
-  gitProvider: GitProvider
-  defaultBranch?: string
-  pipelineConfigPath?: string
-  githubToken?: string
-}
-
-export interface UpdateProjectRequest {
-  name?: string
-  repoUrl?: string
-  gitProvider?: GitProvider
-  defaultBranch?: string
-  pipelineConfigPath?: string
-  isActive?: boolean
-  githubToken?: string
-  clearGithubToken?: boolean
-}
-
-export interface TriggerBuildRequest {
-  branch: string
-  commitSha: string
-}
-
-export interface SecretResponse {
-  id: number
-  name: string
-  value: string
-  createdAt: string
-}
-
-export interface CreateSecretRequest {
-  name: string
-  value: string
+export interface ToastMessage {
+  id: string
+  type: 'success' | 'error' | 'info' | 'warning'
+  title: string
+  message?: string
+  duration?: number
 }

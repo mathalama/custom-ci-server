@@ -161,8 +161,8 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { getProject, getBuilds, triggerBuild, deleteProject, getSecrets, addSecret, deleteSecret } from '@/api/client'
 import type { ProjectResponse, BuildResponse, SecretResponse } from '@/types'
-import BuildCard from '@/components/BuildCard.vue'
-import Icon from '@/components/Icon.vue'
+import BuildCard from '@/components/build/BuildCard.vue'
+import Icon from '@/components/common/Icon.vue'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()

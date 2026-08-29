@@ -1,26 +1,31 @@
 <template>
-  <div>
+  <div class="projects-page">
     <div class="page-header">
       <div>
         <h1 class="page-title">Проекты</h1>
-        <p class="page-subtitle">Все зарегистрированные CI проекты</p>
+        <p class="page-subtitle">Управление репозиториями и CI-пайплайнами</p>
       </div>
       <router-link to="/projects/new" class="btn btn-primary">
         <Icon name="plus" :size="16" />
-        Новый проект
+        <span>Новый проект</span>
       </router-link>
     </div>
 
-    <div v-if="loading" class="loading"><div class="spinner"></div></div>
-    <div v-else-if="projects.length === 0" class="empty-state">
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <span>Загрузка проектов...</span>
+    </div>
+
+    <div v-else-if="projects.length === 0" class="empty-state card">
       <div class="empty-state-icon">
-        <Icon name="folder" :size="40" />
+        <Icon name="folder" :size="44" color="#64748b" />
       </div>
-      <div class="empty-state-text">Проектов пока нет</div>
+      <div class="empty-state-text">Проекты пока не созданы</div>
       <router-link to="/projects/new" class="btn btn-primary" style="margin-top: 16px">
         Создать первый проект
       </router-link>
     </div>
+
     <div v-else class="projects-grid">
       <router-link
         v-for="project in projects"
@@ -29,7 +34,12 @@
         class="project-card card"
       >
         <div class="project-header">
-          <span class="project-name">{{ project.name }}</span>
+          <div class="project-title-wrap">
+            <div class="project-icon-box">
+              <Icon name="folder" :size="18" color="#60a5fa" />
+            </div>
+            <span class="project-name">{{ project.name }}</span>
+          </div>
           <Icon :name="providerIcon(project.gitProvider)" :size="20" />
         </div>
         <div class="project-repo">{{ project.repoUrl }}</div>
@@ -51,20 +61,20 @@
 import { ref, onMounted } from 'vue'
 import { getProjects } from '@/api/client'
 import type { ProjectResponse } from '@/types'
-import Icon from '@/components/Icon.vue'
+import Icon from '@/components/common/Icon.vue'
 
 const projects = ref<ProjectResponse[]>([])
 const loading = ref(true)
 
 const providerIcon = (provider: string) => {
   const icons: Record<string, string> = { GITHUB: 'github', GITLAB: 'gitlab', GITEA: 'gitea' }
-  return icons[provider] || 'package'
+  return icons[provider] || 'folder'
 }
 
 onMounted(async () => {
   try {
     const res = await getProjects(0, 100)
-    projects.value = res.data.data.content
+    projects.value = res.data.data ? res.data.data.content : []
   } catch (e) {
     console.error('Failed to load projects', e)
   } finally {
@@ -74,47 +84,84 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.projects-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 16px;
+  gap: 20px;
 }
 
 .project-card {
   text-decoration: none;
   color: inherit;
-  cursor: pointer;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-blue);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
 }
 
 .project-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.project-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.project-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .project-name {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .project-repo {
   font-size: 13px;
   color: var(--text-secondary);
   word-break: break-all;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  font-family: var(--font-mono);
 }
 
 .project-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 12px;
 }
 
 .project-branch {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   font-size: 13px;
   color: var(--text-secondary);
 }
@@ -122,19 +169,26 @@ onMounted(async () => {
 .project-status {
   font-size: 12px;
   font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--surface-elevated);
-  color: var(--text-secondary);
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
 }
 
 .project-status.active {
-  color: var(--success);
-  border-color: var(--success);
+  color: var(--accent-green);
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.08);
 }
 
-.project-status.inactive {
+.loading-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 16px;
   color: var(--text-muted);
 }
 </style>

@@ -27,7 +27,7 @@ const router = createRouter({
     {
       path: '/builds/:id',
       name: 'build-detail',
-      component: () => import('@/views/BuildView.vue'),
+      component: () => import('@/pages/BuildDetailPage.vue'),
       props: true,
     },
     {

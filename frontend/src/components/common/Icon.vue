@@ -3,18 +3,24 @@
     class="icon"
     :width="size"
     :height="size"
-    :style="{ color: color }"
+    :style="{ color }"
   >
     <use :href="`/icons.svg#icon-${name}`" />
   </svg>
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  name: string
-  size?: number
-  color?: string
-}>()
+withDefaults(
+  defineProps<{
+    name: string
+    size?: number
+    color?: string
+  }>(),
+  {
+    size: 18,
+    color: 'currentColor',
+  }
+)
 </script>
 
 <style scoped>

@@ -3,12 +3,15 @@ import type {
   ApiResponse,
   PagedResponse,
   ProjectResponse,
+  UpdateProjectRequest,
   BuildResponse,
   BuildArtifact,
   CreateProjectRequest,
   TriggerBuildRequest,
   SecretResponse,
   CreateSecretRequest,
+  RunnerResponse,
+  AddRunnerRequest,
 } from '@/types'
 
 const api = axios.create({
@@ -72,8 +75,18 @@ export const getArtifactDownloadUrl = (buildId: number, artifactId: number) =>
   `/api/v1/builds/${buildId}/artifacts/${artifactId}/download`
 
 // ===== Logs =====
+export interface HistoricalLogLine {
+  id: number
+  buildId: number
+  stepId: number
+  lineNumber: number
+  content: string
+  stream: 'STDOUT' | 'STDERR'
+  timestamp: string
+}
+
 export const getHistoricalLogs = (buildId: number, stepId: number, size = 1000) =>
-  api.get<ApiResponse<PagedResponse<any>>>(`/builds/${buildId}/steps/${stepId}/logs`, {
+  api.get<ApiResponse<PagedResponse<HistoricalLogLine>>>(`/builds/${buildId}/steps/${stepId}/logs`, {
     params: { size, sort: 'lineNumber,asc' }
   })
 
@@ -101,6 +114,37 @@ export const createLogStream = (
 }
 
 // ===== OAuth =====
+export interface GithubProfile {
+  login: string
+  avatarUrl: string
+  name?: string
+  htmlUrl: string
+  avatar_url?: string
+  html_url?: string
+  public_repos?: number
+  total_private_repos?: number
+}
+
+export interface GithubRepo {
+  id: number
+  name: string
+  full_name: string
+  html_url: string
+  clone_url: string
+  default_branch: string
+  private: boolean
+  description: string
+  // Aliases from backend camelCase
+  fullName?: string
+  cloneUrl?: string
+  defaultBranch?: string
+  isPrivate?: boolean
+}
+
+export interface GithubBranch {
+  name: string
+}
+
 export const getGithubOauthConfig = () =>
   api.get<ApiResponse<{ clientId: string }>>('/auth/github/config')
 
@@ -114,16 +158,16 @@ export const disconnectGithubOauth = () =>
   api.delete<ApiResponse<void>>('/auth/github/disconnect')
 
 export const getGithubProfile = () =>
-  api.get<ApiResponse<any>>('/auth/github/profile')
+  api.get<ApiResponse<GithubProfile>>('/auth/github/profile')
 
 export const getGithubUserRepos = () =>
-  api.get<ApiResponse<any>>('/auth/github/repos')
+  api.get<ApiResponse<GithubRepo[]>>('/auth/github/repos')
 
 export const getGithubRepoBranches = (owner: string, repo: string) =>
-  api.get<ApiResponse<any>>(`/auth/github/repos/${owner}/${repo}/branches`)
+  api.get<ApiResponse<GithubBranch[]>>(`/auth/github/repos/${owner}/${repo}/branches`)
 
 export const getGithubRepoContents = (owner: string, repo: string, ref?: string) =>
-  api.get<ApiResponse<any>>(`/auth/github/repos/${owner}/${repo}/contents${ref ? '?ref=' + ref : ''}`)
+  api.get<ApiResponse<Array<{ name: string; path: string; type: string }>>>(`/auth/github/repos/${owner}/${repo}/contents${ref ? '?ref=' + ref : ''}`)
 
 // ===== System Info =====
 export const getSystemInfo = () =>
@@ -131,14 +175,21 @@ export const getSystemInfo = () =>
 
 // ===== Runners =====
 export const getRunners = () =>
-  api.get<ApiResponse<any[]>>('/runners')
+  api.get<ApiResponse<RunnerResponse[]>>('/runners')
 
 export const getRunner = (id: number) =>
-  api.get<ApiResponse<any>>(`/runners/${id}`)
+  api.get<ApiResponse<RunnerResponse>>(`/runners/${id}`)
 
-export const createRunner = (data: any) =>
-  api.post<ApiResponse<any>>('/runners', data)
+export const generateRunnerRegistrationToken = (name?: string) =>
+  api.post<ApiResponse<{ runnerId: number; registrationToken: string; expiresAt: string }>>('/runners/tokens/generate', null, {
+    params: name ? { name } : {}
+  })
+
+export const createRunner = (data: AddRunnerRequest) =>
+  api.post<ApiResponse<RunnerResponse>>('/runners', data)
 
 export const deleteRunner = (id: number) =>
   api.delete(`/runners/${id}`)
 
+export const deployRunner = (id: number) =>
+  api.post<ApiResponse<RunnerResponse>>(`/runners/${id}/deploy`)

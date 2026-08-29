@@ -1,245 +1,380 @@
 <template>
-  <div v-if="loading" class="loading"><div class="spinner"></div></div>
-  <div v-else-if="build">
+  <div v-if="loading" class="loading-screen">
+    <div class="spinner"></div>
+    <span>Загрузка информации о сборке...</span>
+  </div>
+
+  <div v-else-if="build" class="build-detail-page">
+    <!-- Header -->
     <div class="page-header">
-      <div>
-        <h1 class="page-title">Билд #{{ build.id }}</h1>
-        <p class="page-subtitle">
-          <router-link :to="`/projects/${build.projectId}`" class="back-link">
-            <Icon name="arrow-left" :size="14" />
-            Проект
-          </router-link>
-          <span class="separator">·</span> {{ build.branch }} <span class="separator">·</span> {{ build.commitSha.slice(0, 7) }}
-        </p>
+      <div class="header-left">
+        <router-link :to="`/projects/${build.projectId}`" class="back-link">
+          <Icon name="arrow-left" :size="16" />
+          <span>Проект</span>
+        </router-link>
+        <h1 class="page-title">Сборка #{{ build.id }}</h1>
+        <div class="build-submeta">
+          <span class="branch-tag">
+            <Icon name="git-branch" :size="14" />
+            {{ build.branch }}
+          </span>
+          <span class="dot-separator">•</span>
+          <code class="commit-tag">
+            <Icon name="git-commit" :size="14" />
+            {{ build.commitSha ? build.commitSha.slice(0, 7) : 'head' }}
+          </code>
+          <span class="dot-separator">•</span>
+          <span class="trigger-tag">
+            <Icon name="webhook" :size="14" />
+            {{ build.triggerType }}
+          </span>
+        </div>
       </div>
-      <div style="display: flex; gap: 8px; align-items: center">
+
+      <div class="header-actions">
         <StatusBadge :status="build.status" />
         <button
           v-if="build.status === 'RUNNING' || build.status === 'PENDING'"
           class="btn btn-danger"
           @click="handleCancel"
         >
-          Отменить
+          <Icon name="x" :size="14" />
+          <span>Отменить</span>
         </button>
       </div>
     </div>
 
-    <div style="margin-top: 24px;">
-      <!-- Top: Pipeline DAG -->
-      <PipelineGraph
-        v-if="build.steps.length > 0"
-        :steps="build.steps"
-        :active-step-id="activeStepId"
-        @select="activeStepId = $event"
-      />
-      <div v-else class="card empty-state" style="margin-bottom: 24px;">
-        <div class="empty-state-text">Шаги ещё не созданы</div>
-      </div>
+    <!-- Main Content Layout -->
+    <div class="build-grid">
+      <!-- Pipeline Steps & Graph -->
+      <div class="left-panel">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Пайплайн выполнения</h3>
+          </div>
+          <PipelineGraph
+            v-if="build.steps && build.steps.length > 0"
+            :steps="build.steps"
+            :active-step-id="activeStepId"
+            @select="selectStep"
+          />
+          <div v-else class="empty-state">
+            <span>Шаги ещё не созданы</span>
+          </div>
+        </div>
 
-      <!-- Bottom: Logs -->
-      <div class="logs-panel">
-        <h3 class="card-title">Логи {{ activeStepName }}</h3>
-        <LogViewer
-          v-if="activeStepId"
-          :build-id="build.id"
-          :step-id="activeStepId"
-          :is-running="activeStepStatus === 'RUNNING'"
-          :new-log-line="latestLogChunk"
-        />
-        <div v-else class="card empty-state">
-          <div class="empty-state-text">Выберите шаг для просмотра логов</div>
+        <!-- Artifacts Section -->
+        <div v-if="artifacts.length > 0" class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <Icon name="package" :size="16" />
+              <span>Артефакты сборки ({{ artifacts.length }})</span>
+            </h3>
+          </div>
+          <div class="artifacts-list">
+            <div v-for="artifact in artifacts" :key="artifact.id" class="artifact-item">
+              <div class="artifact-info">
+                <Icon name="folder" :size="16" color="#60a5fa" />
+                <span class="artifact-name">{{ artifact.fileName }}</span>
+                <span class="artifact-size">({{ formatSize(artifact.fileSize) }})</span>
+              </div>
+              <a
+                :href="getArtifactDownloadUrl(build.id, artifact.id)"
+                download
+                class="btn btn-sm btn-outline"
+              >
+                <Icon name="download" :size="14" />
+                <span>Скачать</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Artifacts -->
-    <div v-if="artifacts.length > 0" class="card" style="margin-top: 24px">
-      <h3 class="card-title">
-        <Icon name="package" :size="16" style="margin-right: 6px" />
-        Артефакты
-      </h3>
-      <div v-for="artifact in artifacts" :key="artifact.id" class="artifact-item">
-        <span>{{ artifact.fileName }}</span>
-        <span class="artifact-size">{{ formatSize(artifact.fileSize) }}</span>
-        <a :href="getDownloadUrl(artifact.id)" class="btn" download>
-          <Icon name="download" :size="14" />
-          Скачать
-        </a>
+      <!-- Right Panel: Step List & Logs -->
+      <div class="right-panel">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <span>Шаги сборки</span>
+            </h3>
+          </div>
+          <StepTimeline
+            :steps="build.steps"
+            :active-step-id="activeStepId"
+            @select="selectStep"
+          />
+        </div>
+
+        <!-- Logs Box -->
+        <div v-if="activeStepId" class="card logs-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <span>Логи: {{ activeStepName }}</span>
+            </h3>
+          </div>
+          <LogViewer
+            :build-id="build.id"
+            :step-id="activeStepId"
+            :is-running="activeStepStatus === 'RUNNING'"
+            :new-log-line="latestLogChunk"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { getBuild, cancelBuild, getArtifacts, getArtifactDownloadUrl } from '@/api/client'
-import type { BuildResponse, BuildArtifact } from '@/types'
-import StatusBadge from '@/components/StatusBadge.vue'
-import PipelineGraph from '@/components/PipelineGraph.vue'
-import LogViewer from '@/components/LogViewer.vue'
-import Icon from '@/components/Icon.vue'
-import { Client } from '@stomp/stompjs'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import {
+  getBuild,
+  cancelBuild,
+  getArtifacts,
+  getArtifactDownloadUrl,
+} from '@/api/client'
+import type { BuildResponse, BuildArtifact, StepStatus } from '@/types'
+import { useWebSocket, type WsLogPayload } from '@/composables/useWebSocket'
+import { useToast } from '@/composables/useToast'
+import StatusBadge from '@/components/common/StatusBadge.vue'
+import Icon from '@/components/common/Icon.vue'
+import PipelineGraph from '@/components/build/PipelineGraph.vue'
+import StepTimeline from '@/components/build/StepTimeline.vue'
+import LogViewer from '@/components/build/LogViewer.vue'
 
-const props = defineProps<{ id: string }>()
+const route = useRoute()
+const toast = useToast()
+const buildId = Number(route.params.id)
 
 const build = ref<BuildResponse | null>(null)
 const artifacts = ref<BuildArtifact[]>([])
 const loading = ref(true)
 const activeStepId = ref<number | null>(null)
-const latestLogChunk = ref<any>(null)
-let stompClient: Client | null = null
+const latestLogChunk = ref<WsLogPayload | null>(null)
+
+const { logChunks, stepUpdates, buildUpdate } = useWebSocket(buildId)
 
 const activeStepName = computed(() => {
-  if (!activeStepId.value || !build.value) return ''
-  const step = build.value.steps.find((s: any) => s.id === activeStepId.value)
-  return step ? `— ${step.name}` : ''
+  if (!build.value || !activeStepId.value) return ''
+  const step = build.value.steps.find((s) => s.id === activeStepId.value)
+  return step ? step.name : ''
 })
 
-const activeStepStatus = computed(() => {
-  if (!activeStepId.value || !build.value) return null
-  return build.value.steps.find((s: any) => s.id === activeStepId.value)?.status
+const activeStepStatus = computed<StepStatus>(() => {
+  if (!build.value || !activeStepId.value) return 'PENDING'
+  const step = build.value.steps.find((s) => s.id === activeStepId.value)
+  return step ? step.status : 'PENDING'
 })
 
-const loadBuild = async () => {
+const selectStep = (stepId: number) => {
+  activeStepId.value = stepId
+}
+
+const fetchBuildDetails = async () => {
   try {
-    const res = await getBuild(Number(props.id))
+    const res = await getBuild(buildId)
     build.value = res.data.data
-
-    if (!activeStepId.value && build.value.steps.length > 0) {
-      const running = build.value.steps.find((s: any) => s.status === 'RUNNING')
-      activeStepId.value = running?.id || build.value.steps[0].id
+    if (build.value.steps.length > 0 && !activeStepId.value) {
+      const running = build.value.steps.find((s) => s.status === 'RUNNING')
+      activeStepId.value = running ? running.id : build.value.steps[0].id
     }
-
-    const artRes = await getArtifacts(Number(props.id))
-    artifacts.value = artRes.data.data
-  } catch (e) {
-    console.error(e)
+    fetchArtifactsList()
+  } catch (err) {
+    toast.error('Ошибка', 'Не удалось загрузить данные о сборке')
   } finally {
     loading.value = false
   }
 }
 
-const connectWebSocket = () => {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const host = window.location.hostname
-  const port = import.meta.env.DEV ? '8080' : window.location.port
-  const portStr = port ? `:${port}` : ''
-  const wsUrl = `${protocol}//${host}${portStr}/api/ws`
-
-  stompClient = new Client({
-    brokerURL: wsUrl,
-    reconnectDelay: 5000,
-    onConnect: () => {
-      console.log('Connected to STOMP via WebSocket')
-      
-      // Subscribe to step status updates
-      stompClient?.subscribe(`/topic/builds/${props.id}/steps`, (message) => {
-        const payload = JSON.parse(message.body)
-        if (build.value) {
-          const step = build.value.steps.find(s => s.id === payload.stepId)
-          if (step) {
-            step.status = payload.status
-            step.finishedAt = new Date().toISOString()
-          }
-          if (payload.status !== 'RUNNING') {
-            loadBuild()
-          }
-        }
-      })
-
-      // Subscribe to live logs
-      stompClient?.subscribe(`/topic/builds/${props.id}/logs`, (message) => {
-        const payload = JSON.parse(message.body)
-        latestLogChunk.value = payload
-      })
-    },
-    onStompError: (frame) => {
-      console.error('STOMP Error:', frame.headers['message'])
-    }
-  })
-  stompClient.activate()
-}
-
-onMounted(async () => {
-  await loadBuild()
-  connectWebSocket()
-})
-
-onUnmounted(() => {
-  if (stompClient) {
-    stompClient.deactivate()
+const fetchArtifactsList = async () => {
+  try {
+    const res = await getArtifacts(buildId)
+    artifacts.value = res.data.data || []
+  } catch (err) {
+    console.error('Failed to fetch artifacts', err)
   }
-})
+}
 
 const handleCancel = async () => {
-  if (!confirm('Отменить билд?')) return
-  await cancelBuild(Number(props.id))
-  await loadBuild()
+  try {
+    await cancelBuild(buildId)
+    toast.info('Отмена', 'Запрос на отмену сборки отправлен')
+    fetchBuildDetails()
+  } catch (err) {
+    toast.error('Ошибка', 'Не удалось отменить сборку')
+  }
 }
-
-const getDownloadUrl = (artifactId: number) =>
-  getArtifactDownloadUrl(Number(props.id), artifactId)
 
 const formatSize = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
+
+watch(logChunks, (chunks) => {
+  if (chunks.length > 0) {
+    latestLogChunk.value = chunks[chunks.length - 1]
+  }
+}, { deep: true })
+
+watch(stepUpdates, (updates) => {
+  if (updates.length > 0 && build.value) {
+    const lastUpdate = updates[updates.length - 1]
+    const step = build.value.steps.find((s) => s.id === lastUpdate.stepId)
+    if (step) {
+      step.status = lastUpdate.status
+      if (lastUpdate.durationMs) step.durationMs = lastUpdate.durationMs
+    }
+  }
+}, { deep: true })
+
+watch(buildUpdate, (update) => {
+  if (update && build.value) {
+    build.value.status = update.status
+  }
+})
+
+onMounted(() => {
+  fetchBuildDetails()
+})
 </script>
 
 <style scoped>
-.build-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 20px;
+.build-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.steps-panel {
-  position: sticky;
-  top: 32px;
-  align-self: start;
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  gap: 16px;
+  color: var(--text-muted);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  border-radius: 12px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .back-link {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  color: var(--text-secondary);
+  gap: 6px;
+  color: var(--text-muted);
   text-decoration: none;
-  transition: color 0.15s;
+  font-size: 13px;
+
 }
 
 .back-link:hover {
-  color: var(--text-primary);
+  color: var(--accent-blue);
 }
 
-.separator {
+.page-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.build-submeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.branch-tag, .trigger-tag, .commit-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.commit-tag {
+  font-family: var(--font-mono);
+  color: var(--accent-blue);
+}
+
+.dot-separator {
   color: var(--text-muted);
-  margin: 0 2px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.build-grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .build-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.left-panel, .right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.artifacts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
 }
 
 .artifact-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.artifact-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 14px;
 }
 
-.artifact-item:last-child {
-  border-bottom: none;
+.artifact-name {
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .artifact-size {
-  color: var(--text-secondary);
   font-size: 12px;
-  margin-left: auto;
-}
-
-@media (max-width: 768px) {
-  .build-layout {
-    grid-template-columns: 1fr;
-  }
+  color: var(--text-muted);
+  font-family: var(--font-mono);
 }
 </style>
