@@ -1,0 +1,72 @@
+name: rabotyagaci
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: rabotyagaci-db
+    environment:
+      POSTGRES_DB: rabotyagaci
+      POSTGRES_USER: rabotyagaci
+      POSTGRES_PASSWORD: rabotyagaci
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rabotyagaci -d rabotyagaci"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    container_name: rabotyagaci-app
+    ports:
+      - "8080:8080"
+    env_file:
+      - path: ../.env
+        required: false
+      - path: .env
+        required: false
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=rabotyagaci
+      - DB_USERNAME=rabotyagaci
+      - DB_PASSWORD=rabotyagaci
+      - RABOTYAGACI_RUNNER_DOCKER_HOST=unix:///var/run/docker.sock
+      - RABOTYAGACI_RUNNER_WORKSPACE_DIR=/tmp/rabotyagaci/workspaces
+      - RABOTYAGACI_GIT_CLONE_DIR=/tmp/rabotyagaci/repos
+      - RABOTYAGACI_ARTIFACTS_STORAGE_DIR=/var/rabotyagaci/artifacts
+      - SMTP_HOST=${MAIL_HOST:-}
+      - SMTP_PORT=${MAIL_PORT:-587}
+      - SMTP_USERNAME=${MAIL_USERNAME:-}
+      - SMTP_PASSWORD=${MAIL_PASSWORD:-}
+      - EMAIL_NOTIFICATIONS_ENABLED=${EMAIL_NOTIFICATIONS_ENABLED:-true}
+      - EMAIL_NOTIFICATIONS_FROM=${EMAIL_NOTIFICATIONS_FROM:-noreply@mathalama.dev}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3001}
+      - RABOTYAGACI_MASTER_KEY=${RABOTYAGACI_MASTER_KEY:-local-dev-1234567890123456}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - app-data:/tmp/rabotyagaci
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: rabotyagaci-frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  app-data:

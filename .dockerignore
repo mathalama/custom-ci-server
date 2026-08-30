@@ -1,12 +1,17 @@
 .git
-build
-**/build
 .gradle
 .idea
 out/
-frontend/node_modules
-frontend/dist
-**/tmp
+server/build/
+agents/java/build/
+agents/go/dist/
+agents/go/workspaces/
+frontend/node_modules/
+frontend/dist/
+**/tmp/
 postgres-data/
 logs/
 *.log
+
+# Never ignore build package inside java src
+!**/src/**

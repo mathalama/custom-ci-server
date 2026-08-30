@@ -64,7 +64,9 @@ graph TD
 
 2. Build backend and agent JAR files:
    ```bash
+   cd server
    ./gradlew bootJar
+   cd ..
    ```
    *(This task automatically compiles `agent.jar` and packages it into the Master backend's static resources for automatic provisioning).*
 
@@ -72,7 +74,7 @@ graph TD
 
 3. Run the container cluster via Docker Compose:
    ```bash
-   docker compose up -d --build
+   docker compose -f deploy/docker-compose.yml up -d --build
    ```
 
 4. Open the control panel in your browser:

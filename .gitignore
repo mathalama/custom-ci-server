@@ -48,6 +48,18 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
+
+### Go Binaries & Artifacts ###
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+agents/go/workspaces/
+agents/go/config.yaml
+agents/go/dist/
+agents/go/rabotyaga-agent*
 
 ### OS ###
 .DS_Store

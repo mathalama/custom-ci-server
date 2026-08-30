@@ -1,0 +1,3 @@
+rootProject.name = 'server'
+include ':agent-java'
+project(':agent-java').projectDir = new File(settingsDir, '../agents/java')
