@@ -40,15 +40,15 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Println("RabotyagaCI Runner Agent")
+	fmt.Println("Zovik Runner Agent — Distributed CI/CD Pipeline Engine")
 	fmt.Println("Usage:")
-	fmt.Println("  rabotyaga-agent register --url <server_url> --token <registration_token> [--name <name>]")
-	fmt.Println("  rabotyaga-agent run [--config config.yaml]")
+	fmt.Println("  zovik-agent register --url <server_url> --token <registration_token> [--name <name>]")
+	fmt.Println("  zovik-agent run [--config config.yaml]")
 }
 
 func runRegister(args []string) {
 	fs := flag.NewFlagSet("register", flag.ExitOnError)
-	urlFlag := fs.String("url", "http://localhost:8080", "RabotyagaCI Master server URL")
+	urlFlag := fs.String("url", "http://localhost:8080", "Zovik Master server URL")
 	tokenFlag := fs.String("token", "", "One-time registration token (rb_reg_...)")
 	nameFlag := fs.String("name", "", "Runner display name")
 	configPathFlag := fs.String("config", "config.yaml", "Path to config file")
@@ -56,7 +56,7 @@ func runRegister(args []string) {
 	_ = fs.Parse(args)
 
 	if *tokenFlag == "" {
-		log.Fatalf("Error: --token is required. Generate one in RabotyagaCI server first.")
+		log.Fatalf("Error: --token is required. Generate one in Zovik server first.")
 	}
 
 	hostname, _ := os.Hostname()
@@ -78,7 +78,7 @@ func runRegister(args []string) {
 
 	resp, err := http.Post(endpoint, "application/json", bytes.NewReader(bodyBytes))
 	if err != nil {
-		log.Fatalf("Failed to connect to RabotyagaCI master: %v", err)
+		log.Fatalf("Failed to connect to Zovik master: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -115,7 +115,7 @@ func runRegister(args []string) {
 	fmt.Println("==================================================")
 	fmt.Printf("Runner '%s' registered successfully! (ID: %d)\n", cfg.Name, cfg.RunnerID)
 	fmt.Printf("Config saved to: %s\n", *configPathFlag)
-	fmt.Println("To start the runner, run: rabotyaga-agent run")
+	fmt.Println("To start the runner, run: zovik-agent run")
 	fmt.Println("==================================================")
 }
 
@@ -126,11 +126,11 @@ func runAgent(args []string) {
 
 	cfg, err := LoadConfig(*configPathFlag)
 	if err != nil {
-		log.Fatalf("Failed to load config file '%s': %v. Did you run 'rabotyaga-agent register' first?", *configPathFlag, err)
+		log.Fatalf("Failed to load config file '%s': %v. Did you run 'zovik-agent register' first?", *configPathFlag, err)
 	}
 
 	fmt.Println("==================================================")
-	fmt.Println(" RabotyagaCI Pull-Model Runner Agent starting...")
+	fmt.Println(" Zovik Pull-Model Runner Agent starting...")
 	fmt.Printf(" Master URL : %s\n", cfg.MasterURL)
 	fmt.Printf(" Runner ID  : %d (%s)\n", cfg.RunnerID, cfg.Name)
 	fmt.Printf(" Workspace  : %s\n", cfg.WorkspaceDir)

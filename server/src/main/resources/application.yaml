@@ -1,6 +1,6 @@
 spring:
   application:
-    name: rabotyagaCI
+    name: zovik
 
   threads:
     virtual:

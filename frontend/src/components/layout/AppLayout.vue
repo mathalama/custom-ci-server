@@ -5,11 +5,11 @@
       <div class="sidebar-header">
         <router-link to="/" class="logo">
           <div class="logo-mark">
-            <span class="logo-r">R</span>
+            <span class="logo-r">Z</span>
           </div>
           <div class="logo-typography">
-            <span class="logo-title">Rabotyaga</span>
-            <span class="logo-edition">CI</span>
+            <span class="logo-title">Zovik</span>
+            <span class="logo-edition">CI/CD</span>
           </div>
         </router-link>
       </div>

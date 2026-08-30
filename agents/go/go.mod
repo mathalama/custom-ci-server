@@ -1,4 +1,4 @@
-module rabotyaga-agent
+module zovik-agent
 
 go 1.22
 

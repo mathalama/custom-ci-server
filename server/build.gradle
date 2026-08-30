@@ -7,7 +7,7 @@ plugins {
 
 group = 'dev.mathalama'
 version = '0.0.1-SNAPSHOT'
-description = 'rabotyagaCI Server'
+description = 'Zovik CI/CD Server'
 
 java {
     toolchain {

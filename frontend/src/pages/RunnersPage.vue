@@ -82,19 +82,19 @@
               <span>Скомпилируйте агент из папки <code>agents/go/</code>:</span>
             </div>
             <pre class="code-box"><code>cd agents/go
-go build -o rabotyaga-agent .</code></pre>
+go build -o zovik-agent .</code></pre>
 
             <div class="instruction-step">
               <span class="step-num">2</span>
               <span>Зарегистрируйте агент с полученным токен-ключом:</span>
             </div>
-            <pre class="code-box"><code>./rabotyaga-agent register --url {{ currentOrigin }} --token {{ generatedToken }} --name {{ customRunnerName || 'my-runner' }}</code></pre>
+            <pre class="code-box"><code>./zovik-agent register --url {{ currentOrigin }} --token {{ generatedToken }} --name {{ customRunnerName || 'my-runner' }}</code></pre>
 
             <div class="instruction-step">
               <span class="step-num">3</span>
               <span>Запустите агент:</span>
             </div>
-            <pre class="code-box"><code>./rabotyaga-agent run</code></pre>
+            <pre class="code-box"><code>./zovik-agent run</code></pre>
           </div>
 
           <div class="modal-footer-actions">

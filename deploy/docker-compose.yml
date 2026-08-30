@@ -1,9 +1,9 @@
-name: rabotyagaci
+name: zovik
 
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: rabotyagaci-db
+    container_name: zovik-db
     environment:
       POSTGRES_DB: rabotyagaci
       POSTGRES_USER: rabotyagaci
@@ -22,7 +22,7 @@ services:
     build:
       context: ..
       dockerfile: server/Dockerfile
-    container_name: rabotyagaci-app
+    container_name: zovik-app
     ports:
       - "8080:8080"
     env_file:
@@ -62,7 +62,7 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
-    container_name: rabotyagaci-frontend
+    container_name: zovik-frontend
     ports:
       - "3001:80"
     depends_on:
