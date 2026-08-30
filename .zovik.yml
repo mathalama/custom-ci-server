@@ -1,0 +1,21 @@
+version: 1
+name: Zovik Frontend Build Pipeline
+
+steps:
+  - name: Install dependencies and Build
+    image: node:20-alpine
+    commands:
+      - cd frontend
+      - npm install
+      - npm run build
+    artifacts:
+      - frontend/dist
+
+notifications:
+  email:
+    on_success:
+      - "ajkynsagyntaj@gmail.com"
+      - "author"
+    on_failure:
+      - "ajkynsagyntaj@gmail.com"
+      - "author"

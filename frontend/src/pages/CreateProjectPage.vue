@@ -343,9 +343,9 @@ const fetchRepoContents = async () => {
         value: file.path
       }))
 
-      // Find default config candidate (.action.yaml or .rabotyaga.yaml)
+      // Find default config candidate (.zovik.yml, .zovik.yaml, .action.yaml, .rabotyaga.yaml)
       const defaultCandidate = configOptions.value.find(opt => 
-        opt.value === '.action.yaml' || opt.value === '.rabotyaga.yaml' || opt.value === '.rabotyaga-ci.yaml'
+        opt.value === '.zovik.yml' || opt.value === '.zovik.yaml' || opt.value === '.action.yaml' || opt.value === '.rabotyaga.yaml' || opt.value === '.rabotyagaci.yml'
       )
       
       if (defaultCandidate) {
@@ -356,7 +356,7 @@ const fetchRepoContents = async () => {
         form.value.pipelineConfigPath = configOptions.value[0].value
       } else {
         configSelectionType.value = 'custom'
-        form.value.pipelineConfigPath = '.action.yaml'
+        form.value.pipelineConfigPath = '.zovik.yml'
       }
     }
   } catch (err: any) {

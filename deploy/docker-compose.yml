@@ -38,6 +38,7 @@ services:
       - DB_PASSWORD=rabotyagaci
       - RABOTYAGACI_RUNNER_DOCKER_HOST=unix:///var/run/docker.sock
       - RABOTYAGACI_RUNNER_WORKSPACE_DIR=/tmp/rabotyagaci/workspaces
+      - RABOTYAGACI_RUNNER_VOLUME_NAME=zovik_app-data
       - RABOTYAGACI_GIT_CLONE_DIR=/tmp/rabotyagaci/repos
       - RABOTYAGACI_ARTIFACTS_STORAGE_DIR=/var/rabotyagaci/artifacts
       - SMTP_HOST=${MAIL_HOST:-}

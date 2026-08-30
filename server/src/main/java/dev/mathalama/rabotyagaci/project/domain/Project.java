@@ -43,7 +43,7 @@ public class Project {
 
     @Builder.Default
     @Column(name = "pipeline_config_path", nullable = false)
-    private String pipelineConfigPath = ".rabotyaga.yaml";
+    private String pipelineConfigPath = ".zovik.yml";
 
     @Builder.Default
     @Column(name = "is_active", nullable = false)

@@ -13,7 +13,7 @@ public class RunnerConfig {
 
     private String dockerHost;
     private String workspaceDir;
-    private String volumeName = "rabotyagaci_app-data";
+    private String volumeName = "zovik_app-data";
     private long defaultTimeout = 600L;
     private int maxConcurrentBuilds = 3;
     private String containerMemoryLimit = "512m";
