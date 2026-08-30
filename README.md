@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>⚡ High-Performance Distributed CI/CD &amp; DAG Pipeline Engine</strong>
+  <strong>High-Performance Distributed CI/CD &amp; DAG Pipeline Engine</strong>
 </p>
 
 <p align="center">
@@ -17,7 +17,7 @@
 
 ---
 
-## 📖 Overview
+## Overview
 
 **Zovik** is a modern, distributed, and lightweight open-source CI/CD system designed as a resource-efficient, self-hosted alternative to GitLab CI and Jenkins.
 
@@ -25,7 +25,7 @@ The system is built on a **Master-Agent DAG** architecture, allowing you to buil
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 * **Directed Acyclic Graph (DAG) Engine**: Declare dependencies between steps (`depends_on`), run independent stages in parallel, and benefit from cycle-free topological sorting.
 * **Portable Go Runner (Pull-Model)**: ~15MB stateless Go runner daemon connecting via secure long-polling. No open inbound SSH ports required on worker machines.
@@ -38,7 +38,7 @@ The system is built on a **Master-Agent DAG** architecture, allowing you to buil
 
 ---
 
-## 🏗 System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -58,7 +58,7 @@ graph TD
 
 ---
 
-## ⚡️ Quick Start
+## Quick Start
 
 ### 1. Run full stack via Docker Compose:
 
@@ -84,7 +84,7 @@ go build -o zovik-agent.exe .
 
 ---
 
-## 📄 Pipeline Configuration Example (`.zovik.yml`)
+## Pipeline Configuration Example (`.zovik.yml`)
 
 Place `.zovik.yml` (or `.rabotyagaci.yml`) in the root of your Git repository:
 
@@ -113,6 +113,6 @@ steps:
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License.
