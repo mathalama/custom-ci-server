@@ -3,91 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zovik Build Notification</title>
+    <title>Zovik Notification</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #0c0c0e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #fafafa;">
-    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0c0c0e; padding: 32px 16px;">
+<body style="margin: 0; padding: 0; background-color: #09090b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #e4e4e7; -webkit-font-smoothing: antialiased;">
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #09090b; padding: 48px 16px;">
         <tr>
             <td align="center">
-                <!-- Main Email Card -->
-                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 540px; background-color: #18181b; border: 1px solid #27272a; border-radius: 14px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+                
+                <!-- Email Card Container -->
+                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 460px; background-color: #121215; border: 1px solid #222226; border-radius: 12px; overflow: hidden; text-align: left;">
                     
-                    <!-- Top Gradient Header Accent -->
+                    <!-- Content Body -->
                     <tr>
-                        <td height="4" th:style="${status == 'SUCCESS'} ? 'background: linear-gradient(90deg, #7C3AED, #10B981);' : 'background: linear-gradient(90deg, #7C3AED, #EF4444);'"></td>
-                    </tr>
+                        <td style="padding: 32px 32px 28px 32px;">
+                            
+                            <!-- Mini Brand Mark Header -->
+                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 24px;">
+                                <tr>
+                                    <td valign="middle">
+                                        <div style="display: inline-block; vertical-align: middle;">
+                                            <span style="display: inline-block; width: 18px; height: 18px; line-height: 18px; background-color: #7C3AED; color: #ffffff; font-weight: 900; font-size: 11px; text-align: center; border-radius: 4px; font-family: monospace;">Z</span>
+                                            <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #71717a; margin-left: 8px; text-transform: uppercase;">ZOVIK CI/CD</span>
+                                        </div>
+                                    </td>
+                                    <td align="right" valign="middle">
+                                        <!-- Status Indicator Pill -->
+                                        <span th:if="${status == 'SUCCESS'}" style="display: inline-block; font-size: 12px; font-weight: 600; color: #10B981; background-color: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 3px 10px; border-radius: 20px;">
+                                            ● Succeeded
+                                        </span>
+                                        <span th:if="${status != 'SUCCESS'}" style="display: inline-block; font-size: 12px; font-weight: 600; color: #EF4444; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); padding: 3px 10px; border-radius: 20px;" th:text="'● ' + ${status}">
+                                            ● Failed
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
 
-                    <!-- Brand Header -->
-                    <tr>
-                        <td style="padding: 24px 28px 18px 28px; border-bottom: 1px solid #27272a;">
+                            <!-- Build Main Title -->
+                            <div style="margin-bottom: 20px;">
+                                <h1 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 600; color: #fafafa; letter-spacing: -0.01em;">
+                                    <span th:text="${projectName}">custom-ci-server</span>
+                                    <span style="color: #52525b; font-weight: 400; font-family: monospace; font-size: 15px;" th:text="'#' + ${buildId}">#1</span>
+                                </h1>
+                                <p style="margin: 0; font-size: 13.5px; color: #a1a1aa; line-height: 1.5;">
+                                    Pipeline finished execution <span th:if="${duration != '-'}" th:text="'in ' + ${duration}">in 4s</span>.
+                                </p>
+                            </div>
+
+                            <!-- Divider -->
+                            <div style="height: 1px; background-color: #222226; margin-bottom: 20px;"></div>
+
+                            <!-- Metadata List (Linear style) -->
+                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 26px; font-size: 13px;">
+                                <tr>
+                                    <td style="padding: 5px 0; color: #71717a; width: 90px;">Branch</td>
+                                    <td style="padding: 5px 0; color: #e4e4e7; font-family: ui-monospace, monospace; font-weight: 500;" th:text="${branch}">dev</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 5px 0; color: #71717a;">Commit</td>
+                                    <td style="padding: 5px 0; color: #a1a1aa; font-family: ui-monospace, monospace;" th:text="${commitSha}">HEAD</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 5px 0; color: #71717a;">Trigger</td>
+                                    <td style="padding: 5px 0; color: #a1a1aa;" th:text="${triggerType}">MANUAL</td>
+                                </tr>
+                            </table>
+
+                            <!-- Action Button -->
                             <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
                                 <tr>
                                     <td>
-                                        <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.03em; color: #ffffff;">ZOVIK</span>
-                                        <span style="display: inline-block; margin-left: 8px; padding: 2px 7px; background-color: rgba(124, 58, 237, 0.18); border: 1px solid rgba(124, 58, 237, 0.35); border-radius: 5px; font-size: 11px; font-weight: 700; color: #c4b5fd; letter-spacing: 0.05em; vertical-align: middle;">CI/CD</span>
-                                    </td>
-                                    <td align="right">
-                                        <span style="font-family: monospace; font-size: 13px; color: #71717a;" th:text="'Build #' + ${buildId}">Build #1</span>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-
-                    <!-- Body Content -->
-                    <tr>
-                        <td style="padding: 28px;">
-                            
-                            <!-- Status Headline & Badge -->
-                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 22px;">
-                                <tr>
-                                    <td>
-                                        <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: #a1a1aa; margin-bottom: 6px; font-weight: 600;">Pipeline Execution</div>
-                                        <div style="font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;" th:text="${projectName}">custom-ci-server</div>
-                                    </td>
-                                    <td align="right" valign="top">
-                                        <!-- Success Badge -->
-                                        <span th:if="${status == 'SUCCESS'}" style="display: inline-block; padding: 5px 12px; background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; font-size: 12px; font-weight: 700; color: #34d399; letter-spacing: 0.03em;">
-                                            SUCCESS
-                                        </span>
-                                        <!-- Failure Badge -->
-                                        <span th:if="${status != 'SUCCESS'}" style="display: inline-block; padding: 5px 12px; background-color: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 20px; font-size: 12px; font-weight: 700; color: #f87171; letter-spacing: 0.03em;" th:text="${status}">
-                                            FAILURE
-                                        </span>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <!-- Bento Info Matrix -->
-                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #121215; border: 1px solid #27272a; border-radius: 10px; margin-bottom: 24px; padding: 14px 18px;">
-                                <tr>
-                                    <td width="50%" style="padding: 6px 0;">
-                                        <span style="font-size: 12px; color: #71717a; display: block; margin-bottom: 2px;">Branch</span>
-                                        <span style="font-size: 13.5px; font-weight: 600; color: #e4e4e7; font-family: monospace;" th:text="${branch}">dev</span>
-                                    </td>
-                                    <td width="50%" style="padding: 6px 0;">
-                                        <span style="font-size: 12px; color: #71717a; display: block; margin-bottom: 2px;">Commit</span>
-                                        <span style="font-size: 13.5px; font-weight: 600; color: #e4e4e7; font-family: monospace;" th:text="${commitSha}">HEAD</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td width="50%" style="padding: 6px 0;">
-                                        <span style="font-size: 12px; color: #71717a; display: block; margin-bottom: 2px;">Trigger</span>
-                                        <span style="font-size: 13.5px; font-weight: 600; color: #e4e4e7;" th:text="${triggerType}">WEBHOOK</span>
-                                    </td>
-                                    <td width="50%" style="padding: 6px 0;">
-                                        <span style="font-size: 12px; color: #71717a; display: block; margin-bottom: 2px;">Duration</span>
-                                        <span style="font-size: 13.5px; font-weight: 600; color: #e4e4e7;" th:text="${duration}">4s</span>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <!-- CTA Button -->
-                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="text-align: center;">
-                                <tr>
-                                    <td align="center">
-                                        <a th:href="${buildUrl}" style="display: inline-block; background-color: #7C3AED; color: #ffffff; text-decoration: none; padding: 11px 26px; border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; box-shadow: 0 2px 10px rgba(124, 58, 237, 0.35);">
-                                            View Pipeline &amp; Logs &rarr;
+                                        <a th:href="${buildUrl}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; background-color: #7C3AED; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; letter-spacing: 0.01em;">
+                                            Open Build in Zovik
                                         </a>
                                     </td>
                                 </tr>
@@ -96,16 +82,17 @@
                         </td>
                     </tr>
 
-                    <!-- Footer -->
+                    <!-- Subtle Footer -->
                     <tr>
-                        <td style="padding: 16px 28px; background-color: #121215; border-top: 1px solid #27272a; text-align: center;">
-                            <span style="font-size: 12px; color: #71717a;">
-                                Automated message from <strong>Zovik Engine</strong> • Master Server
+                        <td style="padding: 16px 32px; background-color: #0d0d10; border-top: 1px solid #1c1c20; text-align: center;">
+                            <span style="font-size: 11.5px; color: #52525b;">
+                                Zovik Distributed CI/CD Engine
                             </span>
                         </td>
                     </tr>
 
                 </table>
+
             </td>
         </tr>
     </table>
