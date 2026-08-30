@@ -2,7 +2,14 @@
   <div :class="nodeClass">
     <Handle type="target" :position="Position.Left" class="node-handle" />
     <div class="node-header">
-      <span class="status-icon" :class="data.status.toLowerCase()">{{ statusIcon }}</span>
+      <span class="status-icon" :class="data.status.toLowerCase()">
+        <span v-if="data.status === 'RUNNING'" class="spinner-small"></span>
+        <Icon v-else-if="data.status === 'SUCCESS'" name="check" :size="12" />
+        <Icon v-else-if="data.status === 'FAILURE'" name="x-mark" :size="12" />
+        <Icon v-else-if="data.status === 'CANCELLED'" name="x-circle" :size="12" />
+        <Icon v-else-if="data.status === 'SKIPPED'" name="minus" :size="12" />
+        <Icon v-else name="dot" :size="8" />
+      </span>
       <div class="node-details">
         <span class="node-label">{{ data.label }}</span>
         <span v-if="formattedDuration" class="node-duration">{{ formattedDuration }}</span>
@@ -16,6 +23,7 @@
 import { computed } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 import type { StepStatus } from '@/types'
+import Icon from '@/components/common/Icon.vue'
 
 export interface DAGNodeData {
   label: string
@@ -36,17 +44,6 @@ const nodeClass = computed(() => {
     'node-running': props.data.status === 'RUNNING',
     'node-pending': props.data.status === 'PENDING',
     'node-skipped': props.data.status === 'SKIPPED',
-  }
-})
-
-const statusIcon = computed(() => {
-  switch (props.data.status) {
-    case 'SUCCESS': return '✓'
-    case 'FAILURE': return '✕'
-    case 'CANCELLED': return '⏹'
-    case 'RUNNING': return '↻'
-    case 'SKIPPED': return '↷'
-    default: return '⋯'
   }
 })
 

@@ -5,7 +5,17 @@
       <div class="sidebar-header">
         <router-link to="/" class="logo">
           <div class="logo-mark">
-            <span class="logo-r">Z</span>
+            <svg viewBox="0 0 100 100" width="22" height="22" fill="none">
+              <path d="M28 28 L72 28 L28 72 L72 72" stroke="#C4B5FD" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="28" cy="28" r="8" fill="#09090B" stroke="#A78BFA" stroke-width="3.5" />
+              <circle cx="28" cy="28" r="3" fill="#A78BFA" />
+              <circle cx="72" cy="28" r="8" fill="#09090B" stroke="#8B5CF6" stroke-width="3.5" />
+              <circle cx="72" cy="28" r="3" fill="#8B5CF6" />
+              <circle cx="28" cy="72" r="8" fill="#09090B" stroke="#7C3AED" stroke-width="3.5" />
+              <circle cx="28" cy="72" r="3" fill="#7C3AED" />
+              <circle cx="72" cy="72" r="8" fill="#09090B" stroke="#10B981" stroke-width="3.5" />
+              <circle cx="72" cy="72" r="3" fill="#10B981" />
+            </svg>
           </div>
           <div class="logo-typography">
             <span class="logo-title">Zovik</span>
@@ -95,18 +105,21 @@ import ToastContainer from '@/components/common/ToastContainer.vue'
 }
 
 .logo-mark {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-sm);
-  background: var(--accent-brand);
-  color: #ffffff;
+  background: #18181b;
+  border: 1px solid #27272a;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 15px;
-  letter-spacing: -0.03em;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.25);
+  transition: all 0.2s ease;
+}
+
+.logo:hover .logo-mark {
+  border-color: rgba(124, 58, 237, 0.5);
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
 }
 
 .logo-typography {
@@ -127,9 +140,9 @@ import ToastContainer from '@/components/common/ToastContainer.vue'
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.25);
-  color: var(--accent-brand);
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  color: #a78bfa;
   font-family: var(--font-mono);
 }
 

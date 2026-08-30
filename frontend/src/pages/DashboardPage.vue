@@ -26,7 +26,7 @@
         <div class="stat-header">
           <span class="stat-label">Успешных сборок</span>
           <div class="stat-icon-box success">
-            <span class="stat-indicator success">✓</span>
+            <Icon name="check" :size="14" color="var(--accent-green)" />
           </div>
         </div>
         <div class="stat-value text-success">{{ successCount }}</div>
@@ -36,7 +36,7 @@
         <div class="stat-header">
           <span class="stat-label">Сборок с ошибкой</span>
           <div class="stat-icon-box failure">
-            <span class="stat-indicator failure">✕</span>
+            <Icon name="x-mark" :size="14" color="var(--accent-red)" />
           </div>
         </div>
         <div class="stat-value text-danger">{{ failureCount }}</div>
@@ -46,7 +46,7 @@
         <div class="stat-header">
           <span class="stat-label">В процессе</span>
           <div class="stat-icon-box running">
-            <span class="stat-indicator running">↻</span>
+            <Icon name="clock" :size="14" color="var(--accent-amber)" />
           </div>
         </div>
         <div class="stat-value text-running">{{ runningCount }}</div>
@@ -64,8 +64,14 @@
         <span>Загрузка данных...</span>
       </div>
 
-      <div v-else-if="recentBuilds.length === 0" class="empty-state bento-card">
-        <div class="empty-state-text">Пока нет запусков. Создайте проект и запустите первый пайплайн.</div>
+      <div v-else-if="recentBuilds.length === 0" class="bento-card">
+        <EmptyState
+          type="no-pipelines"
+          title="Пока нет запусков пайплайнов"
+          description="В системе ещё не запущен ни один билд. Создайте проект, подключите репозиторий и запустите первый пайплайн."
+          action-text="+ Создать проект"
+          @action="$router.push('/projects/new')"
+        />
       </div>
 
       <div v-else class="builds-list">
@@ -81,6 +87,7 @@ import { getRecentBuilds, getProjects } from '@/api/client'
 import type { BuildResponse } from '@/types'
 import BuildCard from '@/components/build/BuildCard.vue'
 import Icon from '@/components/common/Icon.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
 
 const projectsCount = ref(0)
 const recentBuilds = ref<BuildResponse[]>([])

@@ -16,12 +16,14 @@
       <span>Загрузка раннеров...</span>
     </div>
 
-    <div v-else-if="runners.length === 0" class="empty-state card">
-      <h2>Нет подключенных удаленных раннеров</h2>
-      <p>Сборки по умолчанию выполняются локально во встроенном Docker. Запустите Go-агент на любом сервере или ПК, чтобы распределить нагрузку.</p>
-      <button class="btn btn-primary" style="margin-top: 14px;" @click="openRegisterModal">
-        Подключить первый агент
-      </button>
+    <div v-else-if="runners.length === 0" class="bento-card">
+      <EmptyState
+        type="no-runners"
+        title="Нет подключенных удаленных раннеров"
+        description="Сборки по умолчанию выполняются локально во встроенном Docker. Запустите zovik-agent на внешних нодах для распределения нагрузки."
+        action-text="+ Зарегистрировать агент"
+        @action="openRegisterModal"
+      />
     </div>
 
     <div v-else class="runners-grid">
@@ -114,6 +116,7 @@ import { getRunners, generateRunnerRegistrationToken, deleteRunner } from '@/api
 import type { RunnerResponse } from '@/types'
 import RunnerCard from '@/components/runner/RunnerCard.vue'
 import ModalDialog from '@/components/common/ModalDialog.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
 import { useToast } from '@/composables/useToast'
 
 const runners = ref<RunnerResponse[]>([])

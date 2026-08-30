@@ -15,14 +15,14 @@
       <span>Загрузка проектов...</span>
     </div>
 
-    <div v-else-if="projects.length === 0" class="empty-state card">
-      <div class="empty-state-icon">
-        <Icon name="folder" :size="36" color="var(--text-muted)" />
-      </div>
-      <div class="empty-state-text">Проекты пока не созданы</div>
-      <router-link to="/projects/new" class="btn btn-primary" style="margin-top: 14px">
-        Создать первый проект
-      </router-link>
+    <div v-else-if="projects.length === 0" class="bento-card">
+      <EmptyState
+        type="no-pipelines"
+        title="Проекты пока не созданы"
+        description="Подключите GitHub или любой Git-репозиторий, чтобы настроить автоматическую сборку и тестирование."
+        action-text="+ Создать первый проект"
+        @action="$router.push('/projects/new')"
+      />
     </div>
 
     <div v-else class="projects-grid">
@@ -61,6 +61,7 @@ import { ref, onMounted } from 'vue'
 import { getProjects } from '@/api/client'
 import type { ProjectResponse } from '@/types'
 import Icon from '@/components/common/Icon.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
 
 const projects = ref<ProjectResponse[]>([])
 const loading = ref(true)

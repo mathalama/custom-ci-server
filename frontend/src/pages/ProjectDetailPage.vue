@@ -29,8 +29,12 @@
             <div><span class="info-label">Провайдер:</span> {{ project.gitProvider }}</div>
             <div><span class="info-label">Ветка по умолчанию:</span> <code>{{ project.defaultBranch }}</code></div>
             <div><span class="info-label">Путь к конфигу:</span> <code>{{ project.pipelineConfigPath }}</code></div>
-            <div><span class="info-label">GitHub Token:</span>
-              <span v-if="project.githubToken" style="color: var(--success); font-weight: 600;">✓ Установлен</span>
+            <div>
+              <span class="info-label">GitHub Token:</span>
+              <span v-if="project.githubToken" style="color: var(--accent-green); font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                <Icon name="check" :size="13" color="var(--accent-green)" />
+                Установлен
+              </span>
               <span v-else style="color: var(--text-muted)">Не установлен</span>
             </div>
           </div>

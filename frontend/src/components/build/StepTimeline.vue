@@ -12,10 +12,10 @@
     >
       <div class="timeline-dot" :class="step.status.toLowerCase()">
         <span v-if="step.status === 'RUNNING'" class="spinner-small"></span>
-        <span v-else-if="step.status === 'SUCCESS'" class="status-symbol">✓</span>
-        <span v-else-if="step.status === 'FAILURE'" class="status-symbol">✕</span>
-        <span v-else-if="step.status === 'SKIPPED'" class="status-symbol">↷</span>
-        <span v-else class="status-symbol">⋯</span>
+        <Icon v-else-if="step.status === 'SUCCESS'" name="check" :size="12" />
+        <Icon v-else-if="step.status === 'FAILURE'" name="x-mark" :size="12" />
+        <Icon v-else-if="step.status === 'SKIPPED'" name="minus" :size="12" />
+        <Icon v-else name="dot" :size="10" />
       </div>
 
       <div class="timeline-content">
@@ -37,6 +37,7 @@
 
 <script setup lang="ts">
 import type { BuildStepResponse } from '@/types'
+import Icon from '@/components/common/Icon.vue'
 
 defineProps<{
   steps: BuildStepResponse[]
