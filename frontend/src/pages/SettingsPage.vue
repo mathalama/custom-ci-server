@@ -1,8 +1,10 @@
 <template>
-  <div style="max-width: 1080px; margin: 0 auto; width: 100%;">
+  <div class="settings-page">
     <div class="page-header">
-      <h1 class="page-title">Настройки</h1>
-      <p class="page-subtitle">Управление интеграциями и системными параметрами RabotyagaCI</p>
+      <div>
+        <h1 class="page-title">Настройки</h1>
+        <p class="page-subtitle">Управление интеграциями и системными параметрами платформы</p>
+      </div>
     </div>
 
     <div class="bento-grid">

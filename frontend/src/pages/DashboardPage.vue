@@ -2,48 +2,58 @@
   <div class="dashboard-page">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Обзор системы</h1>
-        <p class="page-subtitle">Метрики и журнал выполнения CI-пайплайнов</p>
+        <h1 class="page-title">Панель управления</h1>
+        <p class="page-subtitle">Обзор системы, производительность и активность CI-сборок в реальном времени</p>
       </div>
       <router-link to="/projects/new" class="btn btn-primary">
         <span>+ Новый проект</span>
       </router-link>
     </div>
 
-    <!-- Editorial Metrics Grid -->
+    <!-- Mathalama Style Bento Metrics Grid -->
     <div class="stats-grid">
-      <div class="stat-card card">
+      <div class="stat-card bento-card">
         <div class="stat-header">
-          <span class="stat-label">Проекты</span>
+          <span class="stat-label">Всего проектов</span>
+          <div class="stat-icon-box">
+            <Icon name="folder" :size="16" color="var(--accent-brand)" />
+          </div>
         </div>
         <div class="stat-value">{{ projectsCount }}</div>
       </div>
 
-      <div class="stat-card card">
+      <div class="stat-card bento-card">
         <div class="stat-header">
-          <span class="stat-label">Успешно</span>
-          <span class="stat-indicator success">✓</span>
+          <span class="stat-label">Успешных сборок</span>
+          <div class="stat-icon-box success">
+            <span class="stat-indicator success">✓</span>
+          </div>
         </div>
         <div class="stat-value text-success">{{ successCount }}</div>
       </div>
 
-      <div class="stat-card card">
+      <div class="stat-card bento-card">
         <div class="stat-header">
-          <span class="stat-label">Ошибок</span>
-          <span class="stat-indicator failure">✕</span>
+          <span class="stat-label">Сборок с ошибкой</span>
+          <div class="stat-icon-box failure">
+            <span class="stat-indicator failure">✕</span>
+          </div>
         </div>
         <div class="stat-value text-danger">{{ failureCount }}</div>
       </div>
 
-      <div class="stat-card card">
+      <div class="stat-card bento-card">
         <div class="stat-header">
           <span class="stat-label">В процессе</span>
-          <span class="stat-indicator running">↻</span>
+          <div class="stat-icon-box running">
+            <span class="stat-indicator running">↻</span>
+          </div>
         </div>
         <div class="stat-value text-running">{{ runningCount }}</div>
       </div>
     </div>
 
+    <!-- Recent Builds Fullscreen Section -->
     <div class="recent-builds-section">
       <div class="section-header">
         <h2 class="section-title">Журнал последних сборок</h2>
@@ -54,7 +64,7 @@
         <span>Загрузка данных...</span>
       </div>
 
-      <div v-else-if="recentBuilds.length === 0" class="empty-state card">
+      <div v-else-if="recentBuilds.length === 0" class="empty-state bento-card">
         <div class="empty-state-text">Пока нет запусков. Создайте проект и запустите первый пайплайн.</div>
       </div>
 
@@ -70,6 +80,7 @@ import { ref, computed, onMounted } from 'vue'
 import { getRecentBuilds, getProjects } from '@/api/client'
 import type { BuildResponse } from '@/types'
 import BuildCard from '@/components/build/BuildCard.vue'
+import Icon from '@/components/common/Icon.vue'
 
 const projectsCount = ref(0)
 const recentBuilds = ref<BuildResponse[]>([])
@@ -82,7 +93,7 @@ const runningCount = computed(() => recentBuilds.value.filter((b) => b.status ==
 onMounted(async () => {
   try {
     const [buildRes, projRes] = await Promise.all([
-      getRecentBuilds(10),
+      getRecentBuilds(15),
       getProjects(0, 100),
     ])
     recentBuilds.value = buildRes.data.data || []
@@ -100,20 +111,21 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 28px;
+  width: 100%;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
+  width: 100%;
 }
 
 .stat-card {
-  padding: 16px 20px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  border-radius: var(--radius-sm);
+  gap: 12px;
 }
 
 .stat-header {
@@ -123,31 +135,40 @@ onMounted(async () => {
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
-.stat-indicator {
-  font-size: 11px;
-  font-weight: 700;
-  width: 18px;
-  height: 18px;
+.stat-icon-box {
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.stat-indicator.success { color: var(--accent-green); background: var(--accent-green-bg); }
-.stat-indicator.failure { color: var(--accent-red); background: var(--accent-red-bg); }
-.stat-indicator.running { color: var(--accent-amber); background: var(--accent-amber-bg); }
+.stat-icon-box.success { background: var(--accent-green-bg); border-color: var(--accent-green-border); }
+.stat-icon-box.failure { background: var(--accent-red-bg); border-color: var(--accent-red-border); }
+.stat-icon-box.running { background: var(--accent-amber-bg); border-color: var(--accent-amber-border); }
+
+.stat-indicator {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.stat-indicator.success { color: var(--accent-green); }
+.stat-indicator.failure { color: var(--accent-red); }
+.stat-indicator.running { color: var(--accent-amber); }
 
 .stat-value {
-  font-size: 26px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 800;
   color: var(--text-primary);
-  line-height: 1.1;
+  line-height: 1;
   font-family: var(--font-mono);
 }
 
@@ -155,28 +176,36 @@ onMounted(async () => {
 .text-danger { color: var(--accent-red); }
 .text-running { color: var(--accent-amber); }
 
+.recent-builds-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
 .section-header {
-  margin-bottom: 14px;
+  margin-bottom: 2px;
 }
 
 .section-title {
-  font-size: 14.5px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
 .builds-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  width: 100%;
 }
 
 .loading-state, .empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 48px;
+  gap: 12px;
+  padding: 60px;
   color: var(--text-secondary);
 }
 </style>

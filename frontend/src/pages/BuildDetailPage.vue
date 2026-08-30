@@ -5,30 +5,35 @@
   </div>
 
   <div v-else-if="build" class="build-detail-page">
-    <!-- Header -->
-    <div class="page-header card">
+    <!-- Fullscreen Header Bento Card -->
+    <div class="page-header bento-card">
       <div class="header-left">
-        <router-link :to="`/projects/${build.projectId}`" class="back-link">
-          <Icon name="arrow-left" :size="13" />
-          <span>Назад к проекту</span>
-        </router-link>
+        <div class="breadcrumbs">
+          <router-link to="/projects" class="breadcrumb-link">Проекты</router-link>
+          <span class="breadcrumb-separator">/</span>
+          <router-link :to="`/projects/${build.projectId}`" class="breadcrumb-link">Проект #{{ build.projectId }}</router-link>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Сборка #{{ build.id }}</span>
+        </div>
+
         <div class="title-row">
           <h1 class="page-title">Сборка #{{ build.id }}</h1>
           <StatusBadge :status="build.status" />
         </div>
+
         <div class="build-submeta">
           <span class="branch-tag">
-            <Icon name="git-branch" :size="12" />
+            <Icon name="git-branch" :size="13" />
             <span>{{ build.branch }}</span>
           </span>
           <span class="dot-separator">•</span>
           <code class="commit-tag">
-            <Icon name="git-commit" :size="12" />
+            <Icon name="git-commit" :size="13" />
             <span>{{ build.commitSha ? build.commitSha.slice(0, 7) : 'head' }}</span>
           </code>
           <span class="dot-separator">•</span>
           <span class="trigger-tag">
-            <Icon name="webhook" :size="12" />
+            <Icon name="webhook" :size="13" />
             <span>{{ build.triggerType }}</span>
           </span>
         </div>
@@ -37,22 +42,25 @@
       <div class="header-actions">
         <button
           v-if="build.status === 'RUNNING' || build.status === 'PENDING'"
-          class="btn btn-danger btn-sm"
+          class="btn btn-danger"
           @click="handleCancel"
         >
-          <Icon name="x" :size="13" />
+          <Icon name="x" :size="14" />
           <span>Отменить сборку</span>
         </button>
       </div>
     </div>
 
-    <!-- Main Content Layout -->
+    <!-- Main Fullscreen Content Layout -->
     <div class="build-grid">
-      <!-- Pipeline Steps & Graph -->
+      <!-- Pipeline Steps & Graph (Left Bento Section) -->
       <div class="left-panel">
-        <div class="card">
+        <div class="bento-card">
           <div class="card-header">
-            <h3 class="card-title">Пайплайн выполнения</h3>
+            <h3 class="card-title">
+              <Icon name="dashboard" :size="16" color="var(--accent-brand)" />
+              <span>Граф выполнения пайплайна (DAG)</span>
+            </h3>
           </div>
           <PipelineGraph
             v-if="build.steps && build.steps.length > 0"
@@ -66,17 +74,17 @@
         </div>
 
         <!-- Artifacts Section -->
-        <div v-if="artifacts.length > 0" class="card">
+        <div v-if="artifacts.length > 0" class="bento-card">
           <div class="card-header">
             <h3 class="card-title">
-              <Icon name="package" :size="15" />
+              <Icon name="package" :size="16" color="var(--accent-brand)" />
               <span>Артефакты сборки ({{ artifacts.length }})</span>
             </h3>
           </div>
           <div class="artifacts-list">
             <div v-for="artifact in artifacts" :key="artifact.id" class="artifact-item">
               <div class="artifact-info">
-                <Icon name="folder" :size="15" color="var(--text-secondary)" />
+                <Icon name="folder" :size="16" color="var(--accent-brand)" />
                 <span class="artifact-name">{{ artifact.fileName }}</span>
                 <span class="artifact-size">({{ formatSize(artifact.fileSize) }})</span>
               </div>
@@ -93,11 +101,13 @@
         </div>
       </div>
 
-      <!-- Right Panel: Step List & Logs -->
+      <!-- Right Panel: Step List & Logs (Right Bento Section) -->
       <div class="right-panel">
-        <div class="card">
+        <div class="bento-card">
           <div class="card-header">
-            <h3 class="card-title">Шаги выполнения</h3>
+            <h3 class="card-title">
+              <span>Шаги пайплайна</span>
+            </h3>
           </div>
           <StepTimeline
             :steps="build.steps"
@@ -107,7 +117,7 @@
         </div>
 
         <!-- Logs Box -->
-        <div v-if="activeStepId" class="card logs-card">
+        <div v-if="activeStepId" class="bento-card logs-card">
           <div class="card-header">
             <h3 class="card-title">
               <span>Логи: {{ activeStepName }}</span>
@@ -275,6 +285,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
 }
 
 .loading-screen {
@@ -292,41 +303,51 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  padding: 20px 24px;
-  border-radius: var(--radius-sm);
+  padding: 24px 28px;
+  width: 100%;
 }
 
 .header-left {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-.back-link {
-  display: inline-flex;
+.breadcrumbs {
+  display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 12px;
+  font-size: 12.5px;
 }
 
-.back-link:hover {
+.breadcrumb-link {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.breadcrumb-link:hover {
+  color: var(--accent-brand);
+}
+
+.breadcrumb-separator {
+  color: var(--text-tertiary);
+}
+
+.breadcrumb-current {
   color: var(--text-primary);
+  font-weight: 600;
 }
 
 .title-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .page-title {
   margin: 0;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   color: var(--text-primary);
   font-family: var(--font-mono);
   letter-spacing: -0.02em;
@@ -336,14 +357,14 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
 .branch-tag, .trigger-tag, .commit-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .commit-tag {
@@ -362,11 +383,12 @@ onUnmounted(() => {
 
 .build-grid {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr 440px;
   gap: 24px;
+  width: 100%;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .build-grid {
     grid-template-columns: 1fr;
   }
@@ -376,6 +398,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
 }
 
 .artifacts-list {
@@ -388,7 +411,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 12px 16px;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
@@ -398,7 +421,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
+  font-size: 13.5px;
 }
 
 .artifact-name {

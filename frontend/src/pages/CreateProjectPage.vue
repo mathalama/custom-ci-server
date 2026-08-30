@@ -37,20 +37,20 @@
     </div>
 
     <!-- 2. AUTHORIZED STATE -->
-    <div v-else style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+    <div v-else style="max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
       <!-- Active session status card -->
-      <div class="card" style="padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+      <div class="card bento-card" style="padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success);"></div>
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green);"></div>
           <span style="font-size: 13.5px; font-weight: 600; color: var(--text-secondary);">GitHub подключен</span>
         </div>
-        <button type="button" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px; font-weight: 600;" @click="logoutOAuth">
+        <button type="button" class="btn btn-danger btn-sm" @click="logoutOAuth">
           Отвязать аккаунт
         </button>
       </div>
 
       <!-- Main Project Creation Form -->
-      <form @submit.prevent="handleSubmit" class="card" style="display: flex; flex-direction: column; gap: 20px;">
+      <form @submit.prevent="handleSubmit" class="card bento-card" style="display: flex; flex-direction: column; gap: 20px;">
         <!-- 2.1 Repository select dropdown -->
         <div class="form-group repo-select-container" style="position: relative;">
           <label class="form-label">Репозиторий *</label>
@@ -66,7 +66,7 @@
             <button 
               type="button" 
               class="form-input" 
-              style="width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #ffffff; padding: 11px 14px;"
+              style="width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: var(--bg-surface); color: var(--text-primary); padding: 11px 14px;"
               @click="showRepoDropdown = !showRepoDropdown"
             >
               <span v-if="selectedRepo" style="font-weight: 600; color: var(--text-primary);">{{ selectedRepo.full_name }}</span>
@@ -75,12 +75,12 @@
             </button>
 
             <!-- Custom Dropdown Menu -->
-            <div v-if="showRepoDropdown" class="card dropdown-card" style="position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 100; padding: 12px; max-height: 320px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; gap: 8px;">
+            <div v-if="showRepoDropdown" class="card dropdown-card" style="position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 100; padding: 12px; max-height: 320px; box-shadow: var(--shadow-bento); display: flex; flex-direction: column; gap: 8px;">
               <input 
                 v-model="repoSearchQuery" 
                 class="form-input" 
                 placeholder="Поиск репозитория..." 
-                style="margin-bottom: 4px; background: var(--surface-hover);"
+                style="margin-bottom: 4px; background: var(--bg-surface);"
                 @click.stop
               />
               
