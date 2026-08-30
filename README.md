@@ -1,93 +1,94 @@
-# RabotyagaCI
+<p align="center">
+  <img src="zovik-brand-kit/github/README-banner.svg" alt="Zovik CI/CD Engine" width="100%" />
+</p>
 
-**RabotyagaCI** is a modern, distributed, and lightweight open-source CI/CD system designed as a resource-efficient alternative to heavy solutions like GitLab CI and Jenkins.
+<p align="center">
+  <strong>⚡ High-Performance Distributed CI/CD &amp; DAG Pipeline Engine</strong>
+</p>
 
-The system is built on a **Master-Agent (Master-Runner)** architecture, allowing you to automatically build, test, and deploy projects inside isolated Docker containers on remote servers.
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-21-orange.svg" alt="Java 21" />
+  <img src="https://img.shields.io/badge/Spring%20Boot-4.1-green.svg" alt="Spring Boot 4.1" />
+  <img src="https://img.shields.io/badge/Go-1.22-blue.svg" alt="Go Runner" />
+  <img src="https://img.shields.io/badge/Vue-3.5-brightgreen.svg" alt="Vue 3" />
+  <img src="https://img.shields.io/badge/Architecture-DAG%20%26%20Pull--Model-purple.svg" alt="DAG Architecture" />
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License MIT" />
+</p>
 
 ---
 
-## Key Features
+## 📖 Overview
 
-* **Distributed Architecture (Master-Agent)**: Build orchestration is managed by the main Master server, while the execution of individual steps is delegated to remote lightweight agents (Runners) over a secure WebSocket connection.
-* **1-Click Agent SSH Auto-Provisioning**: Adding a new build node is done directly from the Master admin panel. The system connects via SSH, installs required dependencies (Docker, Java), uploads the agent binary, and registers a systemd service.
-* **Docker-out-of-Docker (DooD)**: Build steps execute within isolated Docker containers. Supports mounting the docker socket (`/var/run/docker.sock`) and privileged execution (`privileged: true`) to allow building Docker images inside step containers.
-* **Security and Encryption**: All project secrets (passwords, SSH private keys) are stored in the database encrypted via the **AES-256-GCM** algorithm. Secrets are securely mounted to the runner with safe `600` POSIX file permissions.
-* **Real-Time Logs**: Console outputs from Docker build containers on remote nodes are streamed in real time to the user's browser via WebSocket connections.
-* **Artifact Management**: Automatic collection of build results (e.g., `.jar`, `.zip` archives) matching glob patterns, which are uploaded to the Master server via HTTP for persistent storage.
-* **GitHub Integration**: Automatically triggers pipelines on Git push events (using signature-validated webhooks) and updates commit statuses via the GitHub Commit Status API (pending/success/failure).
+**Zovik** is a modern, distributed, and lightweight open-source CI/CD system designed as a resource-efficient, self-hosted alternative to GitLab CI and Jenkins.
+
+The system is built on a **Master-Agent DAG** architecture, allowing you to build, test, and deploy projects inside isolated Docker containers across local or distributed remote servers.
 
 ---
 
-## System Architecture
+## 🚀 Key Features
+
+* **Directed Acyclic Graph (DAG) Engine**: Declare dependencies between steps (`depends_on`), run independent stages in parallel, and benefit from cycle-free topological sorting.
+* **Portable Go Runner (Pull-Model)**: ~15MB stateless Go runner daemon connecting via secure long-polling. No open inbound SSH ports required on worker machines.
+* **Fullscreen Bento UI (Design System)**: Mathalama-inspired dark theme (`#09090B`, `#18181B`), interactive DAG visualizer, and live terminal streaming.
+* **Docker-out-of-Docker (DooD)**: Steps execute within isolated container sandboxes with volume mounting and artifact extraction.
+* **AES-256-GCM Secret Vault**: Multi-tenant encrypted storage for API keys, registry tokens, and SSH keys.
+* **Live STOMP WebSockets Telemetry**: Real-time log line streaming without polling delays.
+* **GitHub Integration**: Automated webhook triggers with HMAC-SHA256 signature verification and GitHub Commit Status reporting (`SUCCESS` / `FAILURE`).
+* **JVM Virtual Threads (Project Loom)**: Spring Boot 4 running on Java 21 Virtual Threads with memory capped under 280MB RAM.
+
+---
+
+## 🏗 System Architecture
 
 ```mermaid
 graph TD
-    User[Developer / Browser] -->|Watch logs and UI| Master[Master Server RabotyagaCI]
-    GitHub[GitHub Webhook] -->|Trigger builds| Master
+    User[Developer / Browser] -->|Live Logs & Bento UI| Master[Zovik Master Server]
+    GitHub[GitHub Webhooks] -->|Push & PR Events| Master
     
-    subgraph "Remote VPS Runner"
-        Agent[Runner Agent agent.jar] -->|WebSocket connection /api/v1/runners/ws| Master
-        Agent <-->|Manage containers| Docker[Local Docker Daemon]
+    subgraph "Distributed Go Worker Node"
+        Agent[Zovik Go Daemon zovik-agent.exe] -->|Pull-Model Long Polling /api/v1/runners| Master
+        Agent <-->|Execute Build Containers| Docker[Local Docker Engine]
     end
     
-    subgraph "Master Server Infrastructure"
-        Master -->|Store builds and logs| DB[(PostgreSQL 16)]
-        Master -->|Auto-provision agent via SSH/SFTP| Agent
+    subgraph "Master Infrastructure"
+        Master -->|Store Pipelines & Encrypted Secrets| DB[(PostgreSQL 16)]
+        Master -->|Live STOMP WebSocket Logs| User
     end
 ```
 
 ---
 
-## Technology Stack
+## ⚡️ Quick Start
 
-* **Master Backend**: Java 21, Spring Boot 4.1 (Virtual Threads / Project Loom), Spring Data JPA, Flyway (DB migrations).
-* **Runner Agent**: Java 21 (Stateless CLI Application), Java-WebSocket, Docker-Java API client, JGit.
-* **Database**: PostgreSQL 16.
-* **Frontend**: Vue 3, Vite, Vue Router, Axios, SSE/WebSockets.
-* **Proxy**: Nginx (used as Reverse Proxy and WebSocket Upgrader).
+### 1. Run full stack via Docker Compose:
 
----
+```bash
+docker compose -f deploy/docker-compose.yml up -d --build
+```
 
-## Quick Start (Run full stack locally)
+Access the web control panel at **[http://localhost:3001](http://localhost:3001)**.
 
-### Prerequisites
-* Installed **Docker Desktop** or **Docker Engine** with Docker Compose.
-* Installed **Java 21 JDK** and Gradle (for building from source).
+### 2. Connect a Go Runner Node:
 
-### Startup Instructions
+```bash
+# 1. Compile the agent
+cd agents/go
+go build -o zovik-agent.exe .
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/mathalama/custom-ci-server.git
-   cd custom-ci-server
-   ```
+# 2. Register with one-time token from Web UI (Runners tab)
+./zovik-agent.exe register --url http://localhost:3001 --token <REGISTRATION_TOKEN> --name worker-01
 
-2. Build backend and agent JAR files:
-   ```bash
-   cd server
-   ./gradlew bootJar
-   cd ..
-   ```
-   *(This task automatically compiles `agent.jar` and packages it into the Master backend's static resources for automatic provisioning).*
-
-    If you run the backend directly from an IDE on Windows, set `SPRING_PROFILES_ACTIVE=dev` so it uses the Windows Docker pipe configuration.
-
-3. Run the container cluster via Docker Compose:
-   ```bash
-   docker compose -f deploy/docker-compose.yml up -d --build
-   ```
-
-4. Open the control panel in your browser:
-   **http://localhost:3001**
+# 3. Start the daemon
+./zovik-agent.exe run
+```
 
 ---
 
-## Pipeline Configuration Example (`.rabotyaga.yaml`)
+## 📄 Pipeline Configuration Example (`.zovik.yml`)
 
-Place this configuration file at the root of your repository:
+Place `.zovik.yml` (or `.rabotyagaci.yml`) in the root of your Git repository:
 
 ```yaml
-# Example pipeline configuration for a Node.js application
 steps:
   - name: "Install dependencies and Build"
     dockerImage: "node:20-alpine"
@@ -95,41 +96,23 @@ steps:
       - "npm install"
       - "npm run build"
     artifacts:
-      - "dist/**" # Collect all files in the dist folder as build artifacts
+      - "dist/**"
 
-  - name: "Build and Push Docker Image"
-    dockerImage: "docker:stable"
-    dockerSocket: true # Mount docker socket to build docker images
-    privileged: true
+  - name: "Run Unit Tests"
+    dockerImage: "node:20-alpine"
+    depends_on: ["Install dependencies and Build"]
     commands:
-      - "docker build -t myapp:latest ."
-      - "docker tag myapp:latest myregistry.com/myapp:latest"
+      - "npm test"
 
   - name: "Deploy to Production"
     dockerImage: "alpine:latest"
+    depends_on: ["Run Unit Tests"]
     commands:
-      - "apk add --no-cache ansible openssh-client"
-      - "ansible-playbook -i hosts deploy.yml --private-key=.ssh/id_rsa"
-    secretFiles:
-      # Master decrypts the private key and writes it inside the container with 600 permissions
-      .ssh/id_rsa: "PROD_SSH_KEY"
+      - "echo 'Deploying artifact to server...'"
 ```
 
 ---
 
-## Remote Agent Deployment (Runners)
+## 📜 License
 
-1. Go to the **Runners** tab in the sidebar menu.
-2. Click **Add Runner**.
-3. Fill in the remote server credentials:
-   * Host / IP address.
-   * SSH Username (e.g., `root`).
-   * SSH Port (default is 22).
-   * SSH Private Key contents or Password.
-4. Click **Deploy Runner**.
-5. Click the **View Install Log** button on the newly added runner card to watch the deployment progress. Once provisioning finishes, the runner status turns **ONLINE** and it automatically starts accepting builds.
-
----
-
-## License
-This project is licensed under the MIT License. Developed as a graduation thesis project.
+This project is licensed under the MIT License.
