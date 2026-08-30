@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { getHistoricalLogs, type HistoricalLogLine } from '@/api/client'
 import type { WsLogPayload } from '@/composables/useWebSocket'
 import Icon from '@/components/common/Icon.vue'
@@ -68,6 +68,7 @@ const loading = ref(true)
 const searchQuery = ref('')
 const autoScroll = ref(true)
 const logContainerRef = ref<HTMLElement | null>(null)
+let pollTimer: any = null
 
 const filteredLines = computed(() => {
   if (!searchQuery.value.trim()) return lines.value
@@ -92,17 +93,23 @@ const onScroll = () => {
   }
 }
 
-const loadHistory = async () => {
-  loading.value = true
-  lines.value = []
+const loadHistory = async (silent = false) => {
+  if (!silent) {
+    loading.value = true
+  }
   try {
     const res = await getHistoricalLogs(props.buildId, props.stepId)
-    lines.value = res.data.data.content || []
-    scrollToBottom()
+    const newLines = res.data?.data?.content || []
+    if (newLines.length > 0 || !silent) {
+      lines.value = newLines
+      scrollToBottom()
+    }
   } catch (e) {
     console.error('Failed to load log history', e)
   } finally {
-    loading.value = false
+    if (!silent) {
+      loading.value = false
+    }
   }
 }
 
@@ -113,28 +120,58 @@ const copyAllLogs = () => {
 }
 
 watch(
-  () => props.stepId,
-  () => loadHistory(),
+  () => [props.buildId, props.stepId],
+  () => {
+    lines.value = []
+    loadHistory(false)
+  },
   { immediate: true }
+)
+
+watch(
+  () => props.isRunning,
+  (running) => {
+    if (!running) {
+      loadHistory(true)
+    }
+  }
 )
 
 watch(
   () => props.newLogLine,
   (newLog) => {
     if (newLog && newLog.stepId === props.stepId) {
-      lines.value.push({
-        id: Date.now(),
-        buildId: props.buildId,
-        stepId: props.stepId,
-        lineNumber: newLog.lineNumber,
-        content: newLog.content,
-        stream: (newLog.stream === 'STDERR' ? 'STDERR' : 'STDOUT') as 'STDOUT' | 'STDERR',
-        timestamp: newLog.timestamp,
-      })
-      scrollToBottom()
+      const exists = lines.value.some(l => l.lineNumber === newLog.lineNumber && l.content === newLog.content)
+      if (!exists) {
+        lines.value.push({
+          id: Date.now(),
+          buildId: props.buildId,
+          stepId: props.stepId,
+          lineNumber: newLog.lineNumber,
+          content: newLog.content,
+          stream: (newLog.stream === 'STDERR' ? 'STDERR' : 'STDOUT') as 'STDOUT' | 'STDERR',
+          timestamp: newLog.timestamp,
+        })
+        scrollToBottom()
+      }
     }
   }
 )
+
+onMounted(() => {
+  pollTimer = setInterval(() => {
+    if (props.isRunning || lines.value.length === 0) {
+      loadHistory(true)
+    }
+  }, 2000)
+})
+
+onUnmounted(() => {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+})
 </script>
 
 <style scoped>
