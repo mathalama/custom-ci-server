@@ -126,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   getBuild,
@@ -212,6 +212,8 @@ const formatSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+let pollTimer: any = null
+
 watch(logChunks, (chunks) => {
   if (chunks.length > 0) {
     latestLogChunk.value = chunks[chunks.length - 1]
@@ -220,11 +222,19 @@ watch(logChunks, (chunks) => {
 
 watch(stepUpdates, (updates) => {
   if (updates.length > 0 && build.value) {
+    // If steps were empty when page first loaded, re-fetch whole build
+    if (!build.value.steps || build.value.steps.length === 0) {
+      fetchBuildDetails()
+      return
+    }
+
     const lastUpdate = updates[updates.length - 1]
     const step = build.value.steps.find((s) => s.id === lastUpdate.stepId)
     if (step) {
       step.status = lastUpdate.status
       if (lastUpdate.durationMs) step.durationMs = lastUpdate.durationMs
+    } else {
+      fetchBuildDetails()
     }
   }
 }, { deep: true })
@@ -232,11 +242,32 @@ watch(stepUpdates, (updates) => {
 watch(buildUpdate, (update) => {
   if (update && build.value) {
     build.value.status = update.status
+    if (!build.value.steps || build.value.steps.length === 0) {
+      fetchBuildDetails()
+    }
   }
 })
 
 onMounted(() => {
   fetchBuildDetails()
+  pollTimer = setInterval(() => {
+    if (
+      !build.value ||
+      build.value.status === 'PENDING' ||
+      build.value.status === 'RUNNING' ||
+      !build.value.steps ||
+      build.value.steps.length === 0
+    ) {
+      fetchBuildDetails()
+    }
+  }, 2000)
+})
+
+onUnmounted(() => {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
 })
 </script>
 

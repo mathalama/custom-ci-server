@@ -12,5 +12,8 @@ public record RunnerJobPayload(
         Map<String, String> environmentVariables,
         boolean privileged,
         boolean dockerSocket,
-        Map<String, String> secretFiles
+        Map<String, String> secretFiles,
+        String repoUrl,
+        String commitRef,
+        String gitToken
 ) {}

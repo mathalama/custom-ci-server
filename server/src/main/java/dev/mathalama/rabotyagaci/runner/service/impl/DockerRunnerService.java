@@ -72,6 +72,7 @@ public class DockerRunnerService {
 
     @Async
     @EventListener
+    @org.springframework.transaction.annotation.Transactional
     public void handleBuildStepStarted(BuildStepStartedEvent event) {
         log.info("Received request to start step: {} for build ID: {}", event.stepName(), event.buildId());
 
@@ -92,6 +93,25 @@ public class DockerRunnerService {
                 buildStepRepository.save(step);
             }
 
+            String repoUrl = null;
+            String commitRef = null;
+            String gitToken = null;
+
+            dev.mathalama.rabotyagaci.build.domain.Build build = buildRepository.findById(event.buildId()).orElse(null);
+            if (build != null) {
+                commitRef = (build.getCommitSha() != null && !build.getCommitSha().isBlank()) ? build.getCommitSha() : build.getBranch();
+                if (build.getProject() != null) {
+                    repoUrl = build.getProject().getRepoUrl();
+                    if (build.getProject().getGithubToken() != null && !build.getProject().getGithubToken().isBlank()) {
+                        try {
+                            gitToken = secretCryptoService.decrypt(build.getProject().getGithubToken());
+                        } catch (Exception e) {
+                            log.warn("Could not decrypt project githubToken for runner job", e);
+                        }
+                    }
+                }
+            }
+
             try {
                 dev.mathalama.rabotyagaci.runner.api.dto.RunnerJobPayload jobPayload = new dev.mathalama.rabotyagaci.runner.api.dto.RunnerJobPayload(
                         event.buildId(),
@@ -102,7 +122,10 @@ public class DockerRunnerService {
                         event.environmentVariables(),
                         event.privileged(),
                         event.dockerSocket(),
-                        event.secretFiles()
+                        event.secretFiles(),
+                        repoUrl,
+                        commitRef,
+                        gitToken
                 );
 
                 runnerJobQueueService.enqueueJob(runner.getId(), jobPayload);
