@@ -1,61 +1,66 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 /* Import Vue Flow base styles */
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 
 /* ==========================================================================
-   GITHUB DARK DESIGN TOKENS
+   EDITORIAL TECH DESIGN SYSTEM (WARM OBSIDIAN & INSTRUMENT SANS)
    ========================================================================== */
 :root {
-  /* Canvas layers */
-  --bg-main: #0d1117;          /* Canvas default */
-  --bg-sidebar: #010409;       /* Canvas inset */
-  --bg-card: #161b22;          /* Canvas subtle */
-  --bg-card-hover: #1f242c;
-  --bg-inset: #010409;
-  --bg-subtle: #161b22;
+  /* Surfaces */
+  --bg-main: #0c0d0e;
+  --bg-sidebar: #09090b;
+  --bg-card: #131417;
+  --bg-card-hover: #181a1f;
+  --bg-inset: #08090a;
+  --bg-subtle: #17181c;
+  --bg-elevated: #1b1d22;
 
-  /* Borders */
-  --border-color: #30363d;
-  --border-color-hover: #8b949e;
-  --border-muted: #21262d;
+  /* Borders (Ultra-crisp 1px borders) */
+  --border-color: rgba(255, 255, 255, 0.07);
+  --border-color-hover: rgba(255, 255, 255, 0.16);
+  --border-muted: rgba(255, 255, 255, 0.04);
+  --border-strong: rgba(255, 255, 255, 0.12);
 
   /* Typography Colors */
-  --text-primary: #c9d1d9;
-  --text-secondary: #8b949e;
-  --text-muted: #6e7681;
-  --text-placeholder: #6e7681;
+  --text-primary: #f4f4f3;
+  --text-secondary: #90939c;
+  --text-muted: #575a63;
+  --text-placeholder: #4a4d56;
 
-  /* GitHub Action / State Colors */
-  --accent-blue: #58a6ff;
-  --accent-blue-hover: #388bfd;
-  --accent-green: #3fb950;
-  --accent-green-bg: #238636;
-  --accent-green-hover: #2ea043;
-  --accent-red: #f85149;
-  --accent-red-bg: #da3633;
-  --accent-red-hover: #b62324;
-  --accent-amber: #d29922;
-  --accent-purple: #bc8cff;
+  /* Editorial Accents */
+  --accent-primary: #e6e6e5;
+  --accent-primary-hover: #ffffff;
+  --accent-blue: #60a5fa;
+  --accent-green: #34d399;
+  --accent-green-bg: rgba(52, 211, 153, 0.08);
+  --accent-green-border: rgba(52, 211, 153, 0.2);
+  --accent-green-hover: #10b981;
+  --accent-red: #f87171;
+  --accent-red-bg: rgba(248, 113, 113, 0.08);
+  --accent-red-border: rgba(248, 113, 113, 0.2);
+  --accent-red-hover: #ef4444;
+  --accent-amber: #fbbf24;
+  --accent-amber-bg: rgba(251, 191, 36, 0.08);
+  --accent-amber-border: rgba(251, 191, 36, 0.2);
+  --accent-purple: #c084fc;
 
   /* Semantic Aliases */
-  --primary: var(--accent-blue);
+  --primary: var(--accent-primary);
   --success: var(--accent-green);
   --failure: var(--accent-red);
-  --running: var(--accent-blue);
+  --running: var(--accent-amber);
   --pending: var(--accent-amber);
   --skipped: var(--text-muted);
   --cancelled: var(--text-muted);
 
   /* Typography */
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 
-  /* Radii (GitHub Standard 6px) */
-  --radius: 6px;
-  --radius-sm: 4px;
-  --radius-pill: 2em;
+  /* Geometry */
+  --radius: 8px;
+  --radius-sm: 5px;
+  --radius-pill: 9999px;
 }
 
 /* ==========================================================================
@@ -73,9 +78,10 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13.5px;
+  line-height: 1.55;
   min-height: 100vh;
+  letter-spacing: -0.01em;
 }
 
 button, input, select, textarea {
@@ -84,22 +90,43 @@ button, input, select, textarea {
 }
 
 a {
-  color: var(--accent-blue);
+  color: var(--text-primary);
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 a:hover {
-  text-decoration: underline;
+  color: #ffffff;
 }
 
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
   font-weight: 600;
-  line-height: 1.25;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 code, pre {
   font-family: var(--font-mono);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* ==========================================================================
@@ -109,15 +136,16 @@ code, pre {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
-  padding: 16px 20px;
+  padding: 20px 24px;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 12px;
-  margin-bottom: 16px;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
   border-bottom: 1px solid var(--border-muted);
 }
 
@@ -129,92 +157,82 @@ code, pre {
   align-items: center;
   gap: 8px;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 /* ==========================================================================
-   BUTTONS (GitHub Style)
+   BUTTONS
    ========================================================================== */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 5px 14px;
-  border-radius: var(--radius);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: 0.15s cubic-bezier(0.3, 0, 0.5, 1);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid var(--border-color);
-  background: #21262d;
+  background: var(--bg-card);
   color: var(--text-primary);
-  line-height: 20px;
+  line-height: 18px;
   white-space: nowrap;
   user-select: none;
 }
 
 .btn:hover:not(:disabled) {
-  background: #30363d;
-  border-color: #8b949e;
-  text-decoration: none;
+  background: var(--bg-card-hover);
+  border-color: var(--border-color-hover);
+  color: #ffffff;
 }
 
 .btn:active:not(:disabled) {
-  background: #282e33;
+  transform: translateY(1px);
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* Primary Button (GitHub Green) */
+/* Primary Button (Refined High-Contrast Ivory) */
 .btn-primary {
-  background-color: var(--accent-green-bg);
-  border-color: rgba(240, 246, 252, 0.1);
-  color: #ffffff;
-  font-weight: 500;
+  background-color: #f4f4f3;
+  border-color: #f4f4f3;
+  color: #0c0d0e;
+  font-weight: 600;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--accent-green-hover);
-  border-color: rgba(240, 246, 252, 0.1);
-  color: #ffffff;
+  background-color: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
 /* Danger Button */
 .btn-danger {
-  background-color: #21262d;
-  border-color: var(--border-color);
+  background-color: var(--accent-red-bg);
+  border-color: var(--accent-red-border);
   color: var(--accent-red);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: var(--accent-red-bg);
-  border-color: var(--accent-red-bg);
+  background-color: var(--accent-red);
+  border-color: var(--accent-red);
   color: #ffffff;
-}
-
-.btn-danger-ghost {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  padding: 4px 8px;
-}
-
-.btn-danger-ghost:hover:not(:disabled) {
-  color: var(--accent-red);
-  background: rgba(248, 81, 73, 0.1);
 }
 
 .btn-ghost {
   background: transparent;
-  border: 1px solid transparent;
+  border-color: transparent;
   color: var(--text-secondary);
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: #21262d;
+  background: rgba(255, 255, 255, 0.05);
   border-color: var(--border-color);
   color: var(--text-primary);
 }
@@ -222,19 +240,18 @@ code, pre {
 .btn-outline {
   background: transparent;
   border-color: var(--border-color);
-  color: var(--accent-blue);
+  color: var(--text-primary);
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: #21262d;
-  border-color: var(--accent-blue);
-  color: var(--accent-blue);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border-color-hover);
 }
 
 .btn-sm {
-  padding: 3px 10px;
+  padding: 4px 10px;
   font-size: 12px;
-  line-height: 18px;
+  line-height: 16px;
 }
 
 /* ==========================================================================
@@ -248,9 +265,10 @@ code, pre {
 }
 
 .form-label {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .form-control,
@@ -259,8 +277,8 @@ code, pre {
 .form-textarea {
   background: var(--bg-inset);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
   font-size: 13px;
   color: var(--text-primary);
   outline: none;
@@ -272,8 +290,8 @@ code, pre {
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
 }
 
 /* ==========================================================================
@@ -283,34 +301,35 @@ code, pre {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--border-muted);
   flex-wrap: wrap;
   gap: 16px;
 }
 
 .page-title {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
 .page-subtitle {
   font-size: 13px;
   color: var(--text-secondary);
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 /* ==========================================================================
    SPINNERS
    ========================================================================== */
 .spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(88, 166, 255, 0.2);
-  border-top-color: var(--accent-blue);
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--text-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -320,20 +339,17 @@ code, pre {
 }
 
 /* ==========================================================================
-   BADGES & TAGS
+   BADGES & CHIPS
    ========================================================================== */
 .branch-tag, .commit-tag, .trigger-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 2px 8px;
-  background: var(--border-muted);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-pill);
-  font-size: 12px;
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
   color: var(--text-secondary);
-}
-
-.commit-tag {
   font-family: var(--font-mono);
 }

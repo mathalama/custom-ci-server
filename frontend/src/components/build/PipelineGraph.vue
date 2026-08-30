@@ -9,19 +9,19 @@
             viewBox="0 0 10 10"
             refX="6"
             refY="5"
-            markerWidth="6"
-            markerHeight="6"
+            markerWidth="5"
+            markerHeight="5"
             orient="auto-start-reverse"
           >
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="rgba(255, 255, 255, 0.25)" />
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="rgba(255, 255, 255, 0.2)" />
           </marker>
           <marker
             id="dag-arrow-success"
             viewBox="0 0 10 10"
             refX="6"
             refY="5"
-            markerWidth="6"
-            markerHeight="6"
+            markerWidth="5"
+            markerHeight="5"
             orient="auto-start-reverse"
           >
             <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent-green)" />
@@ -31,11 +31,11 @@
             viewBox="0 0 10 10"
             refX="6"
             refY="5"
-            markerWidth="6"
-            markerHeight="6"
+            markerWidth="5"
+            markerHeight="5"
             orient="auto-start-reverse"
           >
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent-blue)" />
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent-amber)" />
           </marker>
         </defs>
 
@@ -73,9 +73,9 @@
               @click="emit('select', step.id)"
             >
               <div class="node-status-badge">
-                <Icon v-if="step.status === 'SUCCESS'" name="check" :size="14" />
-                <Icon v-else-if="step.status === 'FAILURE'" name="x" :size="14" />
-                <Icon v-else-if="step.status === 'SKIPPED'" name="arrow-right" :size="14" />
+                <Icon v-if="step.status === 'SUCCESS'" name="check" :size="13" />
+                <Icon v-else-if="step.status === 'FAILURE'" name="x" :size="13" />
+                <Icon v-else-if="step.status === 'SKIPPED'" name="arrow-right" :size="13" />
                 <div v-else-if="step.status === 'RUNNING'" class="spinner-small"></div>
                 <span v-else class="pending-dot"></span>
               </div>
@@ -290,9 +290,9 @@ const formatDuration = (start: string, end: string | null) => {
   padding: 24px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--radius);
   margin-bottom: 24px;
-  min-height: 220px;
+  min-height: 200px;
 }
 
 .dag-container {
@@ -311,34 +311,34 @@ const formatDuration = (start: string, end: string | null) => {
 
 .dag-edge-path {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.15);
-  stroke-width: 2px;
-  stroke-dasharray: 4 2;
-  transition: all 0.3s ease;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1.5px;
+  stroke-dasharray: 4 3;
+  transition: stroke 0.2s ease;
 }
 
 .dag-edge-path.success {
   stroke: var(--accent-green);
   stroke-dasharray: none;
-  stroke-width: 2.5px;
+  stroke-width: 2px;
 }
 
 .dag-edge-path.running {
-  stroke: var(--accent-blue);
-  stroke-dasharray: 6 3;
-  stroke-width: 2.5px;
-  animation: dash 1s linear infinite;
+  stroke: var(--accent-amber);
+  stroke-dasharray: 5 3;
+  stroke-width: 2px;
+  animation: dash 1.2s linear infinite;
 }
 
 @keyframes dash {
   to {
-    stroke-dashoffset: -18;
+    stroke-dashoffset: -16;
   }
 }
 
 .dag-layers {
   display: flex;
-  gap: 64px;
+  gap: 56px;
   position: relative;
   z-index: 2;
 }
@@ -346,95 +346,91 @@ const formatDuration = (start: string, end: string | null) => {
 .dag-stage-column {
   display: flex;
   flex-direction: column;
-  min-width: 200px;
+  min-width: 210px;
 }
 
 .stage-header {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   padding-bottom: 6px;
-  border-bottom: 1px dashed var(--border-color);
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .stage-label {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
 }
 
 .stage-nodes {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .dag-node-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(8px);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dag-node-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent-blue);
-  background: rgba(30, 41, 59, 0.9);
+  border-color: var(--border-color-hover);
+  background: var(--bg-card-hover);
+  transform: translateY(-1px);
 }
 
 .dag-node-card.active {
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35), 0 4px 16px rgba(59, 130, 246, 0.2);
-  background: rgba(30, 58, 138, 0.25);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--bg-elevated);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
-.dag-node-card.success { border-left: 3px solid var(--accent-green); }
-.dag-node-card.failure { border-left: 3px solid var(--accent-red); }
-.dag-node-card.running {
-  border-left: 3px solid var(--accent-blue);
-  box-shadow: 0 0 14px rgba(59, 130, 246, 0.3);
-}
-.dag-node-card.skipped {
-  opacity: 0.6;
-  border-left: 3px solid var(--text-muted);
-}
+.dag-node-card.success { border-left: 2px solid var(--accent-green); }
+.dag-node-card.failure { border-left: 2px solid var(--accent-red); }
+.dag-node-card.running { border-left: 2px solid var(--accent-amber); }
+.dag-node-card.skipped { opacity: 0.5; border-left: 2px solid var(--text-muted); }
 
 .node-status-badge {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
   flex-shrink: 0;
+  border: 1px solid var(--border-color);
 }
 
 .dag-node-card.success .node-status-badge {
-  background: rgba(34, 197, 94, 0.15);
+  background: var(--accent-green-bg);
+  border-color: var(--accent-green-border);
   color: var(--accent-green);
 }
 
 .dag-node-card.failure .node-status-badge {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--accent-red-bg);
+  border-color: var(--accent-red-border);
   color: var(--accent-red);
 }
 
 .dag-node-card.running .node-status-badge {
-  background: rgba(59, 130, 246, 0.15);
-  color: var(--accent-blue);
+  background: var(--accent-amber-bg);
+  border-color: var(--accent-amber-border);
+  color: var(--accent-amber);
 }
 
 .pending-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--text-muted);
 }
@@ -446,7 +442,7 @@ const formatDuration = (start: string, end: string | null) => {
 }
 
 .node-title {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -463,23 +459,23 @@ const formatDuration = (start: string, end: string | null) => {
 
 .image-tag {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-family: var(--font-mono);
 }
 
 .duration-tag {
-  font-size: 10px;
-  color: var(--accent-blue);
+  font-size: 11px;
+  color: var(--text-secondary);
   font-family: var(--font-mono);
 }
 
 .spinner-small {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  border-top-color: var(--accent-blue);
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid rgba(251, 191, 36, 0.3);
+  border-top-color: var(--accent-amber);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {

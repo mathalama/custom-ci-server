@@ -1,45 +1,47 @@
 <template>
   <div v-if="loading" class="loading-screen">
     <div class="spinner"></div>
-    <span>Загрузка информации о сборке...</span>
+    <span>Загрузка данных сборки...</span>
   </div>
 
   <div v-else-if="build" class="build-detail-page">
     <!-- Header -->
-    <div class="page-header">
+    <div class="page-header card">
       <div class="header-left">
         <router-link :to="`/projects/${build.projectId}`" class="back-link">
-          <Icon name="arrow-left" :size="16" />
-          <span>Проект</span>
+          <Icon name="arrow-left" :size="13" />
+          <span>Назад к проекту</span>
         </router-link>
-        <h1 class="page-title">Сборка #{{ build.id }}</h1>
+        <div class="title-row">
+          <h1 class="page-title">Сборка #{{ build.id }}</h1>
+          <StatusBadge :status="build.status" />
+        </div>
         <div class="build-submeta">
           <span class="branch-tag">
-            <Icon name="git-branch" :size="14" />
-            {{ build.branch }}
+            <Icon name="git-branch" :size="12" />
+            <span>{{ build.branch }}</span>
           </span>
           <span class="dot-separator">•</span>
           <code class="commit-tag">
-            <Icon name="git-commit" :size="14" />
-            {{ build.commitSha ? build.commitSha.slice(0, 7) : 'head' }}
+            <Icon name="git-commit" :size="12" />
+            <span>{{ build.commitSha ? build.commitSha.slice(0, 7) : 'head' }}</span>
           </code>
           <span class="dot-separator">•</span>
           <span class="trigger-tag">
-            <Icon name="webhook" :size="14" />
-            {{ build.triggerType }}
+            <Icon name="webhook" :size="12" />
+            <span>{{ build.triggerType }}</span>
           </span>
         </div>
       </div>
 
       <div class="header-actions">
-        <StatusBadge :status="build.status" />
         <button
           v-if="build.status === 'RUNNING' || build.status === 'PENDING'"
-          class="btn btn-danger"
+          class="btn btn-danger btn-sm"
           @click="handleCancel"
         >
-          <Icon name="x" :size="14" />
-          <span>Отменить</span>
+          <Icon name="x" :size="13" />
+          <span>Отменить сборку</span>
         </button>
       </div>
     </div>
@@ -67,14 +69,14 @@
         <div v-if="artifacts.length > 0" class="card">
           <div class="card-header">
             <h3 class="card-title">
-              <Icon name="package" :size="16" />
+              <Icon name="package" :size="15" />
               <span>Артефакты сборки ({{ artifacts.length }})</span>
             </h3>
           </div>
           <div class="artifacts-list">
             <div v-for="artifact in artifacts" :key="artifact.id" class="artifact-item">
               <div class="artifact-info">
-                <Icon name="folder" :size="16" color="#60a5fa" />
+                <Icon name="folder" :size="15" color="var(--text-secondary)" />
                 <span class="artifact-name">{{ artifact.fileName }}</span>
                 <span class="artifact-size">({{ formatSize(artifact.fileSize) }})</span>
               </div>
@@ -83,7 +85,7 @@
                 download
                 class="btn btn-sm btn-outline"
               >
-                <Icon name="download" :size="14" />
+                <Icon name="download" :size="13" />
                 <span>Скачать</span>
               </a>
             </div>
@@ -95,9 +97,7 @@
       <div class="right-panel">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">
-              <span>Шаги сборки</span>
-            </h3>
+            <h3 class="card-title">Шаги выполнения</h3>
           </div>
           <StepTimeline
             :steps="build.steps"
@@ -145,8 +145,8 @@ import LogViewer from '@/components/build/LogViewer.vue'
 
 const route = useRoute()
 const toast = useToast()
-const buildId = Number(route.params.id)
 
+const buildId = Number(route.params.id)
 const build = ref<BuildResponse | null>(null)
 const artifacts = ref<BuildArtifact[]>([])
 const loading = ref(true)
@@ -222,7 +222,6 @@ watch(logChunks, (chunks) => {
 
 watch(stepUpdates, (updates) => {
   if (updates.length > 0 && build.value) {
-    // If steps were empty when page first loaded, re-fetch whole build
     if (!build.value.steps || build.value.steps.length === 0) {
       fetchBuildDetails()
       return
@@ -295,8 +294,8 @@ onUnmounted(() => {
   gap: 16px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  padding: 24px;
-  border-radius: 12px;
+  padding: 20px 24px;
+  border-radius: var(--radius-sm);
 }
 
 .header-left {
@@ -309,29 +308,35 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-decoration: none;
-  font-size: 13px;
-
+  font-size: 12px;
 }
 
 .back-link:hover {
-  color: var(--accent-blue);
+  color: var(--text-primary);
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .page-title {
   margin: 0;
-  font-size: 24px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--text-primary);
   font-family: var(--font-mono);
+  letter-spacing: -0.02em;
 }
 
 .build-submeta {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-secondary);
 }
 
@@ -343,11 +348,10 @@ onUnmounted(() => {
 
 .commit-tag {
   font-family: var(--font-mono);
-  color: var(--accent-blue);
 }
 
 .dot-separator {
-  color: var(--text-muted);
+  color: var(--border-color);
 }
 
 .header-actions {
@@ -358,7 +362,7 @@ onUnmounted(() => {
 
 .build-grid {
   display: grid;
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: 1fr 380px;
   gap: 24px;
 }
 
@@ -378,7 +382,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 16px;
 }
 
 .artifact-item {
@@ -386,16 +389,16 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .artifact-info {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .artifact-name {
@@ -405,7 +408,7 @@ onUnmounted(() => {
 
 .artifact-size {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-family: var(--font-mono);
 }
 </style>

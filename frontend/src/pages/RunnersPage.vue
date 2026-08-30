@@ -3,11 +3,10 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Раннеры сборок</h1>
-        <p class="page-subtitle">Управление удаленными исполнителями через легковесный Go-агент (Pull-модель)</p>
+        <p class="page-subtitle">Управление распределенными исполнителями на базе Go-агента</p>
       </div>
       <button class="btn btn-primary" @click="openRegisterModal">
-        <Icon name="plus" :size="14" />
-        <span>Зарегистрировать агент</span>
+        <span>+ Зарегистрировать агент</span>
       </button>
     </div>
 
@@ -38,7 +37,7 @@
     <ModalDialog
       :is-open="showRegisterModal"
       title="Регистрация нового раннера (Go Agent)"
-      width="640px"
+      width="600px"
       @close="showRegisterModal = false"
     >
       <div class="register-modal-content">
@@ -51,7 +50,7 @@
             <input
               v-model="customRunnerName"
               type="text"
-              placeholder="worker-prod-01"
+              placeholder="worker-01"
               class="form-input"
             />
           </div>
@@ -68,7 +67,7 @@
         <div v-else class="token-result">
           <div class="token-banner">
             <div class="token-info">
-              <span class="token-label">Registration Token (действует 15 минут):</span>
+              <span class="token-label">Токен регистрации (действует 15 минут):</span>
               <code class="token-code">{{ generatedToken }}</code>
             </div>
             <button class="btn btn-sm btn-ghost" @click="copyToClipboard(generatedToken)">
@@ -80,20 +79,20 @@
             <h4 class="instruction-title">Инструкция по запуску:</h4>
             <div class="instruction-step">
               <span class="step-num">1</span>
-              <span>Скомпилируйте или скачайте Go-агент из папки <code>agents/go/</code>:</span>
+              <span>Скомпилируйте агент из папки <code>agents/go/</code>:</span>
             </div>
             <pre class="code-box"><code>cd agents/go
 go build -o rabotyaga-agent .</code></pre>
 
             <div class="instruction-step">
               <span class="step-num">2</span>
-              <span>Зарегистрируйте агент с полученным токеном:</span>
+              <span>Зарегистрируйте агент с полученным токен-ключом:</span>
             </div>
             <pre class="code-box"><code>./rabotyaga-agent register --url {{ currentOrigin }} --token {{ generatedToken }} --name {{ customRunnerName || 'my-runner' }}</code></pre>
 
             <div class="instruction-step">
               <span class="step-num">3</span>
-              <span>Запустите демон раннера:</span>
+              <span>Запустите агент:</span>
             </div>
             <pre class="code-box"><code>./rabotyaga-agent run</code></pre>
           </div>
@@ -115,7 +114,6 @@ import { getRunners, generateRunnerRegistrationToken, deleteRunner } from '@/api
 import type { RunnerResponse } from '@/types'
 import RunnerCard from '@/components/runner/RunnerCard.vue'
 import ModalDialog from '@/components/common/ModalDialog.vue'
-import Icon from '@/components/common/Icon.vue'
 import { useToast } from '@/composables/useToast'
 
 const runners = ref<RunnerResponse[]>([])
@@ -183,7 +181,6 @@ const handleDelete = async (id: number) => {
 
 onMounted(() => {
   loadRunners()
-  // Refresh runner status every 10 seconds
   setInterval(loadRunners, 10000)
 })
 </script>
@@ -192,13 +189,13 @@ onMounted(() => {
 .runners-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .runners-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
 }
 
 .empty-state {
@@ -239,10 +236,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
-  background: var(--bg-inset);
-  border: 1px solid var(--accent-blue);
-  border-radius: 6px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
 }
 
 .token-info {
@@ -260,7 +257,7 @@ onMounted(() => {
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent-blue);
+  color: var(--text-primary);
 }
 
 .instructions-block {
@@ -288,23 +285,23 @@ onMounted(() => {
 .step-num {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
-  background: #21262d;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
   font-weight: 600;
-  color: var(--accent-blue);
+  color: var(--text-primary);
   flex-shrink: 0;
 }
 
 .code-box {
   background: var(--bg-inset);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
   font-size: 12px;
   overflow-x: auto;
   color: var(--text-primary);

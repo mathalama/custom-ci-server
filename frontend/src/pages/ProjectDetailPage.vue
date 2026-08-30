@@ -300,56 +300,37 @@ const handleDeleteSecret = async (secretId: number) => {
 .project-info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-  font-size: 14px;
+  gap: 14px;
+  font-size: 13px;
 }
 
 .info-label {
   color: var(--text-secondary);
-  font-weight: 600;
+  font-weight: 500;
   margin-right: 4px;
 }
 
 code {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12.5px;
-  background: var(--surface-hover);
-  padding: 4px 8px;
-  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--bg-surface);
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
   color: var(--text-primary);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-color);
 }
 
 .builds-list {
   display: flex;
   flex-direction: column;
-}
-
-/* Custom list-style for builds inside the parent card to avoid double card styling */
-.builds-list :deep(.build-card) {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  border-bottom: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  padding: 16px 8px !important;
-  margin: 0 !important;
-}
-
-.builds-list :deep(.build-card:last-child) {
-  border-bottom: none !important;
-}
-
-.builds-list :deep(.build-card:hover) {
-  transform: none !important;
-  background: var(--surface-hover) !important;
-  border-radius: 8px !important;
+  gap: 8px;
 }
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -357,8 +338,7 @@ code {
 }
 
 .modal {
-  width: 400px;
-  box-shadow: var(--shadow-md);
+  width: 420px;
 }
 
 .secrets-list {
@@ -371,28 +351,28 @@ code {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  background: var(--surface-hover);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
 }
 
 .secret-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .secret-name {
   font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
 }
 
 .secret-value {
   color: var(--text-secondary);
 }
 
-/* Badge styling */
 .badge-content {
   display: flex;
   flex-direction: column;
@@ -400,17 +380,17 @@ code {
 }
 
 .badge-img-wrapper {
-  padding: 12px 20px;
-  background: var(--bg-dark);
-  border-radius: 8px;
-  border: 1px solid var(--border);
+  padding: 10px 16px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
   display: inline-flex;
   align-self: start;
 }
 
 .badge-desc {
   margin: 0 0 6px 0;
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-secondary);
 }
 
@@ -426,17 +406,17 @@ code {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg-panel);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .btn-icon-only:hover {
-  background: var(--surface-hover);
+  background: var(--bg-card-hover);
   color: var(--text-primary);
-  border-color: var(--text-secondary);
+  border-color: var(--border-color-hover);
 }
 </style>

@@ -5,27 +5,27 @@
         <StatusBadge :status="build.status" />
         <span class="build-id">#{{ build.id }}</span>
         <span class="branch-tag">
-          <Icon name="git-branch" :size="13" />
+          <Icon name="git-branch" :size="12" />
           <span>{{ build.branch }}</span>
         </span>
         <code class="commit-tag">
-          <Icon name="git-commit" :size="13" />
+          <Icon name="git-commit" :size="12" />
           <span>{{ build.commitSha ? build.commitSha.slice(0, 7) : 'head' }}</span>
         </code>
       </div>
 
       <div class="build-meta-row">
         <span class="meta-item">
-          <Icon :name="triggerIcon" :size="13" />
-          <span>{{ build.triggerType }}</span>
+          <Icon :name="triggerIcon" :size="12" />
+          <span>{{ triggerLabel }}</span>
         </span>
         <span class="dot-separator">•</span>
         <span v-if="duration" class="meta-item">
-          <Icon name="clock" :size="13" />
+          <Icon name="clock" :size="12" />
           <span>{{ duration }}</span>
         </span>
         <span v-if="duration" class="dot-separator">•</span>
-        <span class="meta-item">{{ formatTime(build.createdAt) }}</span>
+        <span class="meta-item timestamp">{{ formatTime(build.createdAt) }}</span>
       </div>
     </div>
 
@@ -52,6 +52,15 @@ const triggerIcon = computed(() => {
     SCHEDULE: 'schedule',
   }
   return icons[props.build.triggerType] || 'gear'
+})
+
+const triggerLabel = computed(() => {
+  const labels: Record<string, string> = {
+    WEBHOOK: 'Webhook',
+    MANUAL: 'Вручную',
+    SCHEDULE: 'Расписание',
+  }
+  return labels[props.build.triggerType] || props.build.triggerType
 })
 
 const duration = computed(() => {
@@ -84,21 +93,21 @@ const formatTime = (iso: string) => {
   color: inherit;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 12px 16px;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .build-card:hover {
   border-color: var(--border-color-hover);
   background: var(--bg-card-hover);
-  text-decoration: none;
+  transform: translateY(-1px);
 }
 
 .build-main {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 .build-title-row {
@@ -109,8 +118,8 @@ const formatTime = (iso: string) => {
 }
 
 .build-id {
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 13.5px;
   color: var(--text-primary);
   font-family: var(--font-mono);
 }
@@ -127,6 +136,11 @@ const formatTime = (iso: string) => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+.timestamp {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
 }
 
 .dot-separator {

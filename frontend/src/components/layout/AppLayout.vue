@@ -4,34 +4,41 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <router-link to="/" class="logo">
-          <div class="logo-icon-wrap">
-            <span class="logo-terminal">>_</span>
+          <div class="logo-mark">
+            <span>R</span>
           </div>
-          <span class="logo-text">Rabotyaga<span class="highlight">CI</span></span>
+          <div class="logo-typography">
+            <span class="logo-title">Rabotyaga</span>
+            <span class="logo-edition">CI</span>
+          </div>
         </router-link>
       </div>
 
       <nav class="sidebar-nav">
         <router-link to="/" class="nav-item" active-class="active" exact>
-          <Icon name="dashboard" :size="16" />
+          <Icon name="dashboard" :size="15" />
           <span>Дашборд</span>
         </router-link>
         <router-link to="/projects" class="nav-item" active-class="active">
-          <Icon name="folder" :size="16" />
+          <Icon name="folder" :size="15" />
           <span>Проекты</span>
         </router-link>
         <router-link to="/runners" class="nav-item" active-class="active">
-          <Icon name="package" :size="16" />
+          <Icon name="package" :size="15" />
           <span>Раннеры</span>
         </router-link>
         <router-link to="/settings" class="nav-item" active-class="active">
-          <Icon name="gear" :size="16" />
+          <Icon name="gear" :size="15" />
           <span>Настройки</span>
         </router-link>
       </nav>
 
       <div class="sidebar-footer">
-        <div class="version-badge">v1.0.0-rc</div>
+        <div class="engine-status">
+          <div class="status-indicator"></div>
+          <span>Система активна</span>
+        </div>
+        <div class="version-label">v1.0.0-rc</div>
       </div>
     </aside>
 
@@ -61,7 +68,7 @@ import ToastContainer from '@/components/common/ToastContainer.vue'
 }
 
 .sidebar {
-  width: 240px;
+  width: 230px;
   background: var(--bg-sidebar);
   border-right: 1px solid var(--border-color);
   display: flex;
@@ -74,53 +81,60 @@ import ToastContainer from '@/components/common/ToastContainer.vue'
 }
 
 .sidebar-header {
-  padding: 16px 20px;
+  padding: 20px 20px 18px 20px;
   border-bottom: 1px solid var(--border-muted);
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   text-decoration: none;
   color: inherit;
 }
 
-.logo-icon-wrap {
+.logo-mark {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
-  background: #161b22;
-  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: #f4f4f3;
+  color: #0c0d0e;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.03em;
 }
 
-.logo-terminal {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent-blue);
+.logo-typography {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.logo-text {
+.logo-title {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
-.highlight {
-  color: var(--accent-blue);
-  font-weight: 700;
+.logo-edition {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
 }
 
 .sidebar-nav {
-  padding: 12px 10px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   flex: 1;
 }
 
@@ -128,33 +142,53 @@ import ToastContainer from '@/components/common/ToastContainer.vue'
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
-  transition: all 0.15s ease;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
 }
 
 .nav-item:hover {
   color: var(--text-primary);
-  background: rgba(177, 186, 196, 0.12);
-  text-decoration: none;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .nav-item.active {
   color: var(--text-primary);
-  background: #161b22;
-  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  font-weight: 600;
 }
 
 .sidebar-footer {
   padding: 16px 20px;
   border-top: 1px solid var(--border-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.version-badge {
+.engine-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.status-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.4);
+}
+
+.version-label {
   font-size: 11px;
   color: var(--text-muted);
   font-family: var(--font-mono);
@@ -162,14 +196,14 @@ import ToastContainer from '@/components/common/ToastContainer.vue'
 
 .main-content {
   flex: 1;
-  margin-left: 240px;
+  margin-left: 230px;
   min-height: 100vh;
   background: var(--bg-main);
 }
 
 .content-wrapper {
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 24px 32px;
+  padding: 32px 40px;
 }
 </style>

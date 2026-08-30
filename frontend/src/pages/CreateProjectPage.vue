@@ -557,21 +557,22 @@ const handleSubmit = async () => {
 
 .input-error {
   border-color: #ef4444 !important;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2) !important;
 }
 
 .dropdown-card {
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
 }
 
 .dropdown-repo-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.15s ease;
   gap: 12px;
@@ -579,18 +580,18 @@ const handleSubmit = async () => {
 }
 
 .dropdown-repo-item:hover {
-  background: var(--surface-hover);
-  border-color: rgba(79, 70, 229, 0.15);
+  background: var(--bg-card-hover);
+  border-color: var(--border-color);
 }
 
 .dropdown-repo-item.active-repo {
-  background: rgba(79, 70, 229, 0.05);
-  border-color: var(--accent);
+  background: var(--bg-surface);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .repo-title-text {
   font-weight: 600;
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--text-primary);
   word-break: break-all;
 }
@@ -605,15 +606,18 @@ const handleSubmit = async () => {
 
 .privacy-tag {
   font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 700;
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--success);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  background: var(--accent-green-bg);
+  border: 1px solid var(--accent-green-border);
+  color: var(--accent-green);
+  font-family: var(--font-mono);
 }
 
 .privacy-tag.private {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--failure);
+  background: var(--accent-amber-bg);
+  border: 1px solid var(--accent-amber-border);
+  color: var(--accent-amber);
 }
 </style>

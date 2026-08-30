@@ -2,16 +2,15 @@
   <div class="dashboard-page">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Дашборд</h1>
-        <p class="page-subtitle">Обзор системы и недавних запусков рабочих процессов RabotyagaCI</p>
+        <h1 class="page-title">Обзор системы</h1>
+        <p class="page-subtitle">Метрики и журнал выполнения CI-пайплайнов</p>
       </div>
-      <div class="system-status-indicator">
-        <span class="live-dot"></span>
-        <span class="status-label">Система активна</span>
-      </div>
+      <router-link to="/projects/new" class="btn btn-primary">
+        <span>+ Новый проект</span>
+      </router-link>
     </div>
 
-    <!-- GitHub Style Flat Metrics Grid -->
+    <!-- Editorial Metrics Grid -->
     <div class="stats-grid">
       <div class="stat-card card">
         <div class="stat-header">
@@ -22,7 +21,7 @@
 
       <div class="stat-card card">
         <div class="stat-header">
-          <span class="stat-label">Успешных сборок</span>
+          <span class="stat-label">Успешно</span>
           <span class="stat-indicator success">✓</span>
         </div>
         <div class="stat-value text-success">{{ successCount }}</div>
@@ -38,7 +37,7 @@
 
       <div class="stat-card card">
         <div class="stat-header">
-          <span class="stat-label">Выполняется сейчас</span>
+          <span class="stat-label">В процессе</span>
           <span class="stat-indicator running">↻</span>
         </div>
         <div class="stat-value text-running">{{ runningCount }}</div>
@@ -47,16 +46,16 @@
 
     <div class="recent-builds-section">
       <div class="section-header">
-        <h2 class="section-title">Последние запуски</h2>
+        <h2 class="section-title">Журнал последних сборок</h2>
       </div>
 
       <div v-if="loading" class="loading-state">
         <div class="spinner"></div>
-        <span>Загрузка сборок...</span>
+        <span>Загрузка данных...</span>
       </div>
 
       <div v-else-if="recentBuilds.length === 0" class="empty-state card">
-        <div class="empty-state-text">Пока нет сборок. Создайте проект и запустите первый пайплайн.</div>
+        <div class="empty-state-text">Пока нет запусков. Создайте проект и запустите первый пайплайн.</div>
       </div>
 
       <div v-else class="builds-list">
@@ -100,41 +99,21 @@ onMounted(async () => {
 .dashboard-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-}
-
-.system-status-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 2em;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent-green);
-  box-shadow: 0 0 6px var(--accent-green);
+  gap: 28px;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
+  gap: 16px;
 }
 
 .stat-card {
-  padding: 14px 16px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  border-radius: 6px;
+  gap: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .stat-header {
@@ -152,29 +131,36 @@ onMounted(async () => {
 .stat-indicator {
   font-size: 11px;
   font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.stat-indicator.success { color: var(--accent-green); }
-.stat-indicator.failure { color: var(--accent-red); }
-.stat-indicator.running { color: var(--accent-blue); }
+.stat-indicator.success { color: var(--accent-green); background: var(--accent-green-bg); }
+.stat-indicator.failure { color: var(--accent-red); background: var(--accent-red-bg); }
+.stat-indicator.running { color: var(--accent-amber); background: var(--accent-amber-bg); }
 
 .stat-value {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 26px;
+  font-weight: 700;
   color: var(--text-primary);
-  line-height: 1.2;
+  line-height: 1.1;
+  font-family: var(--font-mono);
 }
 
 .text-success { color: var(--accent-green); }
 .text-danger { color: var(--accent-red); }
-.text-running { color: var(--accent-blue); }
+.text-running { color: var(--accent-amber); }
 
 .section-header {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .section-title {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -190,7 +176,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 36px;
+  padding: 48px;
   color: var(--text-secondary);
 }
 </style>

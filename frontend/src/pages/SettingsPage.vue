@@ -269,15 +269,14 @@ onMounted(async () => {
   align-items: center;
   gap: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 2px solid var(--accent);
-  box-shadow: 0 0 10px rgba(79, 70, 229, 0.15);
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
 }
 
 .profile-info {
@@ -287,33 +286,34 @@ onMounted(async () => {
 }
 
 .profile-name {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .profile-login {
-  font-size: 14px;
-  color: var(--accent);
+  font-size: 13px;
+  color: var(--text-secondary);
   text-decoration: none;
-  font-weight: 600;
+  font-family: var(--font-mono);
 }
 
 .profile-login:hover {
-  text-decoration: underline;
+  color: var(--text-primary);
 }
 
 .profile-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
 }
 
 .stat-item {
-  background: var(--surface-hover);
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -321,16 +321,17 @@ onMounted(async () => {
 
 .stat-lbl {
   font-size: 11px;
-  color: var(--text-secondary);
-  font-weight: 600;
+  color: var(--text-muted);
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .stat-val {
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-primary);
+  font-family: var(--font-mono);
 }
 
 .action-bar {
@@ -341,15 +342,16 @@ onMounted(async () => {
 }
 
 .status-badge {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-weight: 700;
+  font-size: 11.5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
 }
 
 .status-badge.connected {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--success);
+  background: var(--accent-green-bg);
+  border: 1px solid var(--accent-green-border);
+  color: var(--accent-green);
 }
 
 .connect-container {
@@ -359,35 +361,35 @@ onMounted(async () => {
 }
 
 .connect-desc {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.55;
   margin: 0;
 }
 
 .error-message {
-  color: var(--failure);
-  font-size: 13px;
+  color: var(--accent-red);
+  font-size: 12.5px;
   padding: 10px 12px;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.15);
-  border-radius: 8px;
+  background: var(--accent-red-bg);
+  border: 1px solid var(--accent-red-border);
+  border-radius: var(--radius-sm);
 }
 
 /* System Status Styles */
 .system-details {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
+  font-size: 13px;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .detail-row:last-child {
@@ -408,33 +410,33 @@ onMounted(async () => {
 }
 
 .font-mono {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
 
 .status-indicator {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--text-muted);
 }
 
 .status-indicator.ok {
-  background: var(--success);
-  box-shadow: 0 0 8px var(--success);
+  background: var(--accent-green);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.4);
 }
 
 .system-about h3 {
-  font-size: 14px;
-  font-weight: 700;
-  margin: 0 0 8px 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin: 0 0 6px 0;
   color: var(--text-primary);
 }
 
 .system-about p {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.55;
   margin: 0;
 }
 </style>

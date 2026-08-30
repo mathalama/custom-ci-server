@@ -3,7 +3,7 @@
     <div class="runner-header">
       <div class="runner-info">
         <div class="runner-icon-wrap">
-          <span class="runner-icon-code">>_</span>
+          <Icon name="package" :size="15" color="var(--text-secondary)" />
         </div>
         <div>
           <div class="runner-title-row">
@@ -21,7 +21,7 @@
 
     <div class="runner-hardware-grid">
       <div class="hardware-item">
-        <span class="hw-label">CPU Cores</span>
+        <span class="hw-label">Ядра CPU</span>
         <span class="hw-value">{{ runner.cpuCores || '—' }}</span>
       </div>
       <div class="hardware-item">
@@ -38,10 +38,10 @@
 
     <div class="runner-actions">
       <button
-        class="btn btn-sm btn-danger-ghost"
+        class="btn btn-sm btn-ghost"
         @click="emit('delete', runner.id)"
       >
-        <Icon name="x" :size="13" />
+        <Icon name="x" :size="12" />
         <span>Отозвать токен</span>
       </button>
     </div>
@@ -77,9 +77,9 @@ const formatLastSeen = (iso: string | null) => {
   const date = new Date(iso)
   const diffSec = Math.floor((Date.now() - date.getTime()) / 1000)
   if (diffSec < 15) return 'Только что'
-  if (diffSec < 60) return `${diffSec} сек. назад`
+  if (diffSec < 60) return `${diffSec}с назад`
   const min = Math.floor(diffSec / 60)
-  if (min < 60) return `${min} мин. назад`
+  if (min < 60) return `${min}м назад`
   return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
 }
 </script>
@@ -88,16 +88,18 @@ const formatLastSeen = (iso: string | null) => {
 .runner-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 16px;
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  transition: border-color 0.15s ease;
+  gap: 16px;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .runner-card:hover {
   border-color: var(--border-color-hover);
+  background: var(--bg-card-hover);
+  transform: translateY(-1px);
 }
 
 .runner-header {
@@ -113,21 +115,14 @@ const formatLastSeen = (iso: string | null) => {
 }
 
 .runner-icon-wrap {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: #21262d;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.runner-icon-code {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent-blue);
 }
 
 .runner-title-row {
@@ -141,21 +136,22 @@ const formatLastSeen = (iso: string | null) => {
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .os-tag {
   font-size: 11px;
   padding: 1px 6px;
-  border-radius: 2em;
-  background: var(--border-muted);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
   font-family: var(--font-mono);
 }
 
 .runner-meta-text {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 11.5px;
+  color: var(--text-secondary);
   font-family: var(--font-mono);
 }
 
@@ -163,10 +159,10 @@ const formatLastSeen = (iso: string | null) => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  padding: 10px 12px;
-  background: var(--bg-inset);
-  border: 1px solid var(--border-muted);
-  border-radius: 6px;
+  padding: 12px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
 }
 
 .hardware-item {
@@ -181,7 +177,7 @@ const formatLastSeen = (iso: string | null) => {
 }
 
 .hw-value {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-primary);
   font-family: var(--font-mono);

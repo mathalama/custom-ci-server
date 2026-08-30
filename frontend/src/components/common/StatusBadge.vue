@@ -34,16 +34,17 @@ const label = computed(() => {
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   padding: 2px 8px;
-  border-radius: 2em;
-  font-size: 12px;
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 16px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
 .status-dot {
@@ -60,41 +61,41 @@ const label = computed(() => {
 
 .success .status-dot, .online .status-dot { background: var(--accent-green); }
 .success, .online {
-  border-color: rgba(63, 185, 80, 0.4);
+  border-color: var(--accent-green-border);
   color: var(--accent-green);
-  background: rgba(63, 185, 80, 0.12);
+  background: var(--accent-green-bg);
 }
 
 .failure .status-dot, .error .status-dot { background: var(--accent-red); }
 .failure, .error {
-  border-color: rgba(248, 81, 73, 0.4);
+  border-color: var(--accent-red-border);
   color: var(--accent-red);
-  background: rgba(248, 81, 73, 0.12);
+  background: var(--accent-red-bg);
 }
 
-.running .status-dot, .provisioning .status-dot { background: var(--accent-blue); }
+.running .status-dot, .provisioning .status-dot { background: var(--accent-amber); }
 .running, .provisioning {
-  border-color: rgba(88, 166, 255, 0.4);
-  color: var(--accent-blue);
-  background: rgba(88, 166, 255, 0.12);
+  border-color: var(--accent-amber-border);
+  color: var(--accent-amber);
+  background: var(--accent-amber-bg);
 }
 
 .pending .status-dot { background: var(--accent-amber); }
 .pending {
-  border-color: rgba(210, 153, 34, 0.4);
+  border-color: var(--accent-amber-border);
   color: var(--accent-amber);
-  background: rgba(210, 153, 34, 0.12);
+  background: var(--accent-amber-bg);
 }
 
 .cancelled, .offline, .skipped {
   border-color: var(--border-color);
   color: var(--text-secondary);
-  background: var(--border-muted);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 @keyframes pulse-ring {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.6); }
-  70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(88, 166, 255, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(88, 166, 255, 0); }
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.5); }
+  70% { transform: scale(1); box-shadow: 0 0 0 4px rgba(251, 191, 36, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
 }
 </style>

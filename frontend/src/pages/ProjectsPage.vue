@@ -3,11 +3,10 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Проекты</h1>
-        <p class="page-subtitle">Управление репозиториями и CI-пайплайнами</p>
+        <p class="page-subtitle">Подключенные репозитории и пайплайны</p>
       </div>
       <router-link to="/projects/new" class="btn btn-primary">
-        <Icon name="plus" :size="16" />
-        <span>Новый проект</span>
+        <span>+ Новый проект</span>
       </router-link>
     </div>
 
@@ -18,10 +17,10 @@
 
     <div v-else-if="projects.length === 0" class="empty-state card">
       <div class="empty-state-icon">
-        <Icon name="folder" :size="44" color="#64748b" />
+        <Icon name="folder" :size="36" color="var(--text-muted)" />
       </div>
       <div class="empty-state-text">Проекты пока не созданы</div>
-      <router-link to="/projects/new" class="btn btn-primary" style="margin-top: 16px">
+      <router-link to="/projects/new" class="btn btn-primary" style="margin-top: 14px">
         Создать первый проект
       </router-link>
     </div>
@@ -36,17 +35,17 @@
         <div class="project-header">
           <div class="project-title-wrap">
             <div class="project-icon-box">
-              <Icon name="folder" :size="18" color="#60a5fa" />
+              <Icon name="folder" :size="15" color="var(--text-secondary)" />
             </div>
             <span class="project-name">{{ project.name }}</span>
           </div>
-          <Icon :name="providerIcon(project.gitProvider)" :size="20" />
+          <Icon :name="providerIcon(project.gitProvider)" :size="16" color="var(--text-secondary)" />
         </div>
         <div class="project-repo">{{ project.repoUrl }}</div>
         <div class="project-footer">
           <span class="project-branch">
-            <Icon name="git-branch" :size="14" />
-            {{ project.defaultBranch }}
+            <Icon name="git-branch" :size="12" />
+            <span>{{ project.defaultBranch }}</span>
           </span>
           <span :class="['project-status', project.isActive ? 'active' : 'inactive']">
             {{ project.isActive ? 'Активен' : 'Неактивен' }}
@@ -93,7 +92,7 @@ onMounted(async () => {
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 .project-card {
@@ -101,15 +100,15 @@ onMounted(async () => {
   color: inherit;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 20px;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .project-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent-blue);
-  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
+  border-color: var(--border-color-hover);
+  background: var(--bg-card-hover);
 }
 
 .project-header {
@@ -126,24 +125,25 @@ onMounted(async () => {
 }
 
 .project-icon-box {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .project-name {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14.5px;
+  font-weight: 600;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .project-repo {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
   word-break: break-all;
   margin-bottom: 16px;
@@ -154,7 +154,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--border-muted);
   padding-top: 12px;
 }
 
@@ -162,24 +162,25 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
+  font-family: var(--font-mono);
 }
 
 .project-status {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  padding: 3px 10px;
-  border-radius: 20px;
-  background: var(--bg-card);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   color: var(--text-muted);
 }
 
 .project-status.active {
   color: var(--accent-green);
-  border-color: rgba(34, 197, 94, 0.3);
-  background: rgba(34, 197, 94, 0.08);
+  border-color: var(--accent-green-border);
+  background: var(--accent-green-bg);
 }
 
 .loading-state, .empty-state {
