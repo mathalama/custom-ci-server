@@ -50,6 +50,7 @@ services:
       - RABOTYAGACI_MASTER_KEY=${RABOTYAGACI_MASTER_KEY:-local-dev-1234567890123456}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseG1GC -XX:MaxMetaspaceSize=128m
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - app-data:/tmp/rabotyagaci
