@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "name": "zovik-cli-theme",
+  "version": "1.0.0",
+  "colors": {
+    "reset": "\u001b[0m",
+    "bold": "\u001b[1m",
+    "dim": "\u001b[2m",
+    "italic": "\u001b[3m",
+    "underline": "\u001b[4m",
+
+    "brand": "\u001b[38;2;124;58;237m",
+    "brandLight": "\u001b[38;2;167;139;250m",
+    "brandBg": "\u001b[48;2;124;58;237m",
+
+    "success": "\u001b[38;2;16;185;129m",
+    "running": "\u001b[38;2;59;130;246m",
+    "failed": "\u001b[38;2;239;68;68m",
+    "pending": "\u001b[38;2;234;179;8m",
+    "queued": "\u001b[38;2;161;161;170m",
+    "skipped": "\u001b[38;2;107;114;128m",
+    "offline": "\u001b[38;2;82;82;91m",
+    "retry": "\u001b[38;2;249;115;22m",
+
+    "canvas": "\u001b[38;2;9;9;11m",
+    "surface": "\u001b[38;2;24;24;27m",
+    "border": "\u001b[38;2;39;39;42m",
+    "textPrimary": "\u001b[38;2;250;250;250m",
+    "textSecondary": "\u001b[38;2;161;161;170m",
+    "textMuted": "\u001b[38;2;113;113;122m"
+  },
+  "statusPrefixes": {
+    "SUCCESS": "\u001b[38;2;16;185;129m[✓] SUCCESS\u001b[0m",
+    "RUNNING": "\u001b[38;2;59;130;246m[◐] RUNNING\u001b[0m",
+    "FAILED": "\u001b[38;2;239;68;68m[✕] FAILED \u001b[0m",
+    "PENDING": "\u001b[38;2;234;179;8m[⋯] PENDING\u001b[0m",
+    "QUEUED": "\u001b[38;2;161;161;170m[○] QUEUED \u001b[0m",
+    "SKIPPED": "\u001b[38;2;107;114;128m[⊘] SKIPPED\u001b[0m",
+    "RETRY": "\u001b[38;2;249;115;22m[↻] RETRY  \u001b[0m",
+    "OFFLINE": "\u001b[38;2;82;82;91m[—] OFFLINE\u001b[0m"
+  },
+  "spinners": {
+    "dots": ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+    "pulse": ["○", "◔", "◐", "◕", "●", "◕", "◐", "◔"],
+    "dag": ["▸▹▹", "▹▸▹", "▹▹▸"]
+  },
+  "logFormatting": {
+    "timestampFormat": "HH:mm:ss.SSS",
+    "showStepPrefix": true,
+    "stepPrefixFormat": "\u001b[38;2;167;139;250m[%s]\u001b[0m",
+    "lineDivider": "────────────────────────────────────────────────────────────"
+  }
+}

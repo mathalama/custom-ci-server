@@ -1,0 +1,132 @@
+/**
+ * Zovik CI/CD Pipeline Engine - Design System Tokens
+ * Master CSS Custom Properties
+ */
+
+:root {
+  /* ==========================================================================
+     BASE COLOR PALETTE (Obsidian & Deep Zinc)
+     ========================================================================== */
+  --zovik-color-bg-canvas: #09090b;
+  --zovik-color-bg-surface: #18181b;
+  --zovik-color-bg-surface-elevated: #202024;
+  --zovik-color-bg-surface-hover: #27272a;
+  --zovik-color-bg-inset: #0c0c0e;
+  --zovik-color-bg-glass: rgba(24, 24, 27, 0.75);
+
+  /* Borders & Dividers */
+  --zovik-color-border-subtle: #27272a;
+  --zovik-color-border-default: #3f3f46;
+  --zovik-color-border-hover: #52525b;
+  --zovik-color-border-strong: #71717a;
+
+  /* Typography Text Hierarchy */
+  --zovik-color-text-primary: #fafafa;
+  --zovik-color-text-secondary: #a1a1aa;
+  --zovik-color-text-muted: #71717a;
+  --zovik-color-text-dimmed: #52525b;
+  --zovik-color-text-inverse: #09090b;
+
+  /* ==========================================================================
+     PRIMARY BRAND IDENTITY (Electric Indigo / Violet)
+     ========================================================================== */
+  --zovik-brand-50: #f5f3ff;
+  --zovik-brand-100: #ede9fe;
+  --zovik-brand-200: #ddd6fe;
+  --zovik-brand-300: #c4b5fd;
+  --zovik-brand-400: #a78bfa;
+  --zovik-brand-500: #8b5cf6;
+  --zovik-brand-primary: #7c3aed;
+  --zovik-brand-hover: #6d28d9;
+  --zovik-brand-active: #5b21b6;
+  --zovik-brand-900: #4c1d95;
+  --zovik-brand-950: #2e1065;
+
+  --zovik-brand-glow: rgba(124, 58, 237, 0.25);
+  --zovik-brand-glow-lg: 0 0 32px rgba(124, 58, 237, 0.35);
+  --zovik-brand-bg-subtle: rgba(124, 58, 237, 0.1);
+  --zovik-brand-border-subtle: rgba(124, 58, 237, 0.3);
+
+  /* ==========================================================================
+     PIPELINE & DAG STATUS SEMANTICS
+     ========================================================================== */
+  /* Success (Emerald) */
+  --zovik-status-success: #10b981;
+  --zovik-status-success-bg: rgba(16, 185, 129, 0.1);
+  --zovik-status-success-border: rgba(16, 185, 129, 0.3);
+  --zovik-status-success-glow: 0 0 16px rgba(16, 185, 129, 0.25);
+
+  /* Running (Blue) */
+  --zovik-status-running: #3b82f6;
+  --zovik-status-running-bg: rgba(59, 130, 246, 0.12);
+  --zovik-status-running-border: rgba(59, 130, 246, 0.35);
+  --zovik-status-running-glow: 0 0 18px rgba(59, 130, 246, 0.3);
+
+  /* Failed (Red) */
+  --zovik-status-failed: #ef4444;
+  --zovik-status-failed-bg: rgba(239, 68, 68, 0.1);
+  --zovik-status-failed-border: rgba(239, 68, 68, 0.3);
+  --zovik-status-failed-glow: 0 0 16px rgba(239, 68, 68, 0.25);
+
+  /* Pending / Warning (Amber) */
+  --zovik-status-pending: #eab308;
+  --zovik-status-pending-bg: rgba(234, 179, 8, 0.1);
+  --zovik-status-pending-border: rgba(234, 179, 8, 0.3);
+
+  /* Queued (Zinc) */
+  --zovik-status-queued: #a1a1aa;
+  --zovik-status-queued-bg: rgba(161, 161, 170, 0.08);
+  --zovik-status-queued-border: rgba(161, 161, 170, 0.2);
+
+  /* Skipped (Gray) */
+  --zovik-status-skipped: #6b7280;
+  --zovik-status-skipped-bg: rgba(107, 114, 128, 0.08);
+  --zovik-status-skipped-border: rgba(107, 114, 128, 0.2);
+
+  /* Offline / Disconnected */
+  --zovik-status-offline: #52525b;
+  --zovik-status-offline-bg: rgba(82, 82, 91, 0.1);
+  --zovik-status-offline-border: rgba(82, 82, 91, 0.25);
+
+  /* Retry */
+  --zovik-status-retry: #f97316;
+  --zovik-status-retry-bg: rgba(249, 115, 22, 0.1);
+  --zovik-status-retry-border: rgba(249, 115, 22, 0.3);
+
+  /* ==========================================================================
+     TYPOGRAPHY TOKENS
+     ========================================================================== */
+  --zovik-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --zovik-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Font Sizes */
+  --zovik-text-xs: 0.75rem;    /* 12px */
+  --zovik-text-sm: 0.8125rem;  /* 13px */
+  --zovik-text-base: 0.875rem; /* 14px */
+  --zovik-text-md: 1rem;       /* 16px */
+  --zovik-text-lg: 1.125rem;   /* 18px */
+  --zovik-text-xl: 1.25rem;    /* 20px */
+  --zovik-text-2xl: 1.5rem;    /* 24px */
+  --zovik-text-3xl: 1.875rem;  /* 30px */
+  --zovik-text-4xl: 2.25rem;   /* 36px */
+
+  /* ==========================================================================
+     GEOMETRY & ELEVATION
+     ========================================================================== */
+  --zovik-radius-xs: 4px;
+  --zovik-radius-sm: 6px;
+  --zovik-radius-md: 8px;
+  --zovik-radius-lg: 12px;
+  --zovik-radius-xl: 16px;
+  --zovik-radius-2xl: 20px;
+  --zovik-radius-full: 9999px;
+
+  /* Shadows */
+  --zovik-shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.6), 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --zovik-shadow-elevated: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+  --zovik-shadow-dropdown: 0 16px 36px -8px rgba(0, 0, 0, 0.75), 0 0 0 1px #27272a;
+
+  /* Transitions */
+  --zovik-transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  --zovik-transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}

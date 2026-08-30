@@ -1,0 +1,45 @@
+================================================================================
+  ZOVIK - DISTRIBUTED CI/CD & DAG PIPELINE ENGINE
+================================================================================
+
+[1. FULL ASCII LOGO (Master / Server Header)]
+
+███████╗ ██████╗ ██╗   ██╗██╗██╗  ██╗
+╚══███╔╝██╔═══██╗██║   ██║██║██║ ██╔╝
+  ███╔╝ ██║   ██║██║   ██║██║█████╔╝ 
+ ███╔╝  ██║   ██║╚██╗ ██╔╝██║██╔═██╗ 
+███████╗╚██████╔╝ ╚████╔╝ ██║██║  ██╗
+╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝  ╚═╝
+
+  :: Zovik Distributed Pipeline Engine ::              (v1.0.0-rc)
+
+
+[2. RUNNER AGENT ASCII HEADER]
+
+ ┌────────────────────────────────────────────────────────┐
+ │   ███████╗ ██████╗ ██╗   ██╗██╗██╗  ██╗                │
+ │   ╚══███╔╝██╔═══██╗██║   ██║██║██║ ██╔╝  [RUNNER DAEMON│
+ │     ███╔╝ ██║   ██║██║   ██║██║█████╔╝                 │
+ │    ███╔╝  ██║   ██║╚██╗ ██╔╝██║██╔═██╗   PULL-MODEL]   │
+ │   ███████╗╚██████╔╝ ╚████╔╝ ██║██║  ██╗                │
+ │   ╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝  ╚═╝                │
+ └────────────────────────────────────────────────────────┘
+
+
+[3. COMPACT CLI HEADER]
+
+  ⚡ ZOVIK CI/CD » [v1.0.0] » Ready.
+
+
+[4. PIPELINE STATUS UNICODE GLYPHS]
+
+  [✓] SUCCESS     - Execution finished with exit code 0 (#10B981)
+  [◐] RUNNING     - Step is currently executing inside Docker container (#3B82F6)
+  [✕] FAILED      - Step execution returned non-zero code (#EF4444)
+  [⋯] PENDING     - Awaiting dependency DAG completion (#EAB308)
+  [○] QUEUED      - Task queued in runner broker (#A1A1AA)
+  [⊘] SKIPPED     - Skipped due to previous stage failure (#6B7280)
+  [↻] RETRY       - Step retrying automatically (#F97316)
+  [—] OFFLINE     - Runner node is unreachable (#52525B)
+
+================================================================================

@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" fill="none">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#09090B" />
+      <stop offset="50%" stop-color="#121118" />
+      <stop offset="100%" stop-color="#09090B" />
+    </linearGradient>
+    <linearGradient id="brand-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C4B5FD" />
+      <stop offset="50%" stop-color="#7C3AED" />
+      <stop offset="100%" stop-color="#4C1D95" />
+    </linearGradient>
+    <linearGradient id="pipe-grad-1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0.8" />
+    </linearGradient>
+    <linearGradient id="pipe-grad-2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.8" />
+    </linearGradient>
+    <!-- Glow filter -->
+    <filter id="banner-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Layer -->
+  <rect width="1200" height="300" fill="url(#bg-grad)" />
+  
+  <!-- Subtle Grid Pattern -->
+  <g stroke="#1F1F24" stroke-width="1" opacity="0.6">
+    <path d="M0 60 H1200 M0 120 H1200 M0 180 H1200 M0 240 H1200" />
+    <path d="M150 0 V300 M300 0 V300 M450 0 V300 M600 0 V300 M750 0 V300 M900 0 V300 M1050 0 V300" />
+  </g>
+
+  <!-- Ambient Radial Lighting -->
+  <circle cx="200" cy="150" r="180" fill="#7C3AED" opacity="0.08" filter="url(#banner-glow)" />
+  <circle cx="1000" cy="150" r="220" fill="#7C3AED" opacity="0.06" filter="url(#banner-glow)" />
+
+  <!-- Right Background Stylized Parallel DAG Pipeline -->
+  <g transform="translate(680, 50)" opacity="0.85">
+    <!-- Connector Curves -->
+    <path d="M60 100 C140 100, 140 40, 200 40" stroke="url(#pipe-grad-1)" stroke-width="2.5" stroke-dasharray="6 4" />
+    <path d="M60 100 C140 100, 140 160, 200 160" stroke="url(#pipe-grad-2)" stroke-width="2.5" stroke-dasharray="6 4" />
+    <path d="M200 40 C280 40, 280 100, 360 100" stroke="#10B981" stroke-width="2.5" />
+    <path d="M200 160 C280 160, 280 100, 360 100" stroke="#3B82F6" stroke-width="2.5" />
+    <path d="M360 100 L440 100" stroke="#10B981" stroke-width="3" />
+
+    <!-- Node 1 (Trigger) -->
+    <g transform="translate(60, 100)">
+      <circle r="18" fill="#18181B" stroke="#7C3AED" stroke-width="2" />
+      <circle r="6" fill="#7C3AED" />
+      <text y="32" font-family="'JetBrains Mono', monospace" font-size="11" fill="#A1A1AA" text-anchor="middle">git:push</text>
+    </g>
+
+    <!-- Node 2 (Lint & Test) -->
+    <g transform="translate(200, 40)">
+      <circle r="18" fill="#18181B" stroke="#10B981" stroke-width="2" />
+      <circle r="6" fill="#10B981" />
+      <text y="32" font-family="'JetBrains Mono', monospace" font-size="11" fill="#10B981" text-anchor="middle">test [✓]</text>
+    </g>
+
+    <!-- Node 3 (Build Docker) -->
+    <g transform="translate(200, 160)">
+      <circle r="18" fill="#18181B" stroke="#3B82F6" stroke-width="2" />
+      <circle r="6" fill="#3B82F6" />
+      <text y="32" font-family="'JetBrains Mono', monospace" font-size="11" fill="#3B82F6" text-anchor="middle">build [◐]</text>
+    </g>
+
+    <!-- Node 4 (Artifact) -->
+    <g transform="translate(360, 100)">
+      <circle r="18" fill="#18181B" stroke="#8B5CF6" stroke-width="2" />
+      <circle r="6" fill="#8B5CF6" />
+      <text y="32" font-family="'JetBrains Mono', monospace" font-size="11" fill="#A1A1AA" text-anchor="middle">package</text>
+    </g>
+
+    <!-- Node 5 (Deploy) -->
+    <g transform="translate(440, 100)">
+      <circle r="18" fill="#18181B" stroke="#10B981" stroke-width="2" />
+      <circle r="6" fill="#10B981" />
+      <text y="32" font-family="'JetBrains Mono', monospace" font-size="11" fill="#10B981" text-anchor="middle">deploy [✓]</text>
+    </g>
+  </g>
+
+  <!-- Left Content: Logo + Typography -->
+  <g transform="translate(80, 80)">
+    <!-- Symbol Badge -->
+    <g transform="translate(0, 0)">
+      <rect width="80" height="80" rx="20" fill="#18181B" stroke="#27272A" stroke-width="2" />
+      <path d="M24 24 L56 24 L24 56 L56 56" stroke="url(#brand-grad)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+      <circle cx="24" cy="24" r="5" fill="#09090B" stroke="#A78BFA" stroke-width="2" />
+      <circle cx="24" cy="24" r="1.5" fill="#A78BFA" />
+      <circle cx="56" cy="24" r="5" fill="#09090B" stroke="#8B5CF6" stroke-width="2" />
+      <circle cx="56" cy="24" r="1.5" fill="#8B5CF6" />
+      <circle cx="24" cy="56" r="5" fill="#09090B" stroke="#7C3AED" stroke-width="2" />
+      <circle cx="24" cy="56" r="1.5" fill="#7C3AED" />
+      <circle cx="56" cy="56" r="5" fill="#09090B" stroke="#10B981" stroke-width="2" />
+      <circle cx="56" cy="56" r="1.5" fill="#10B981" />
+    </g>
+
+    <!-- Brand Name -->
+    <text x="104" y="52" font-family="'Inter', -apple-system, sans-serif" font-size="44" font-weight="900" fill="#FAFAFA" letter-spacing="-0.04em">
+      ZOVIK
+    </text>
+
+    <!-- Sub-badge -->
+    <g transform="translate(268, 22)">
+      <rect width="72" height="28" rx="7" fill="rgba(124, 58, 237, 0.15)" stroke="rgba(124, 58, 237, 0.4)" stroke-width="1.2" />
+      <text x="36" y="19" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#C4B5FD" text-anchor="middle" letter-spacing="0.06em">
+        CI/CD
+      </text>
+    </g>
+
+    <!-- Tagline -->
+    <text x="106" y="86" font-family="'Inter', -apple-system, sans-serif" font-size="16" font-weight="500" fill="#A1A1AA" letter-spacing="-0.01em">
+      Distributed CI/CD &amp; DAG Pipeline Engine
+    </text>
+  </g>
+
+  <!-- Bottom Accent Line -->
+  <line x1="0" y1="298" x2="1200" y2="298" stroke="#7C3AED" stroke-width="2" opacity="0.6" />
+</svg>
