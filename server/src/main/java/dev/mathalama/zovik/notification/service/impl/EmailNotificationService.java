@@ -65,6 +65,15 @@ public class EmailNotificationService implements NotificationService {
         String projectName = build.getProject().getName();
         String branch = build.getBranch();
         String buildUrl = frontendUrl + "/builds/" + event.buildId();
+        String commitSha = (build.getCommitSha() != null && !build.getCommitSha().isBlank())
+                ? (build.getCommitSha().length() > 7 ? build.getCommitSha().substring(0, 7) : build.getCommitSha())
+                : "HEAD";
+        String triggerType = (build.getTriggerType() != null) ? build.getTriggerType().name() : "MANUAL";
+        String duration = "-";
+        if (build.getStartedAt() != null && build.getFinishedAt() != null) {
+            long seconds = java.time.Duration.between(build.getStartedAt(), build.getFinishedAt()).toSeconds();
+            duration = seconds + "s";
+        }
 
         try {
             Context context = new Context();
@@ -72,6 +81,9 @@ public class EmailNotificationService implements NotificationService {
             context.setVariable("branch", branch);
             context.setVariable("buildId", event.buildId());
             context.setVariable("status", event.status().name());
+            context.setVariable("commitSha", commitSha);
+            context.setVariable("triggerType", triggerType);
+            context.setVariable("duration", duration);
             context.setVariable("buildUrl", buildUrl);
 
             String htmlContent = templateEngine.process("email/build-notification", context);
