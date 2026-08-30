@@ -39,9 +39,36 @@ func main() {
 	}
 }
 
+const (
+	colorReset   = "\033[0m"
+	colorBold    = "\033[1m"
+	colorBrand   = "\033[38;2;124;58;237m"
+	colorPurple  = "\033[38;2;167;139;250m"
+	colorGreen   = "\033[38;2;16;185;129m"
+	colorBlue    = "\033[38;2;59;130;246m"
+	colorRed     = "\033[38;2;239;68;68m"
+	colorAmber   = "\033[38;2;245;158;11m"
+	colorMuted   = "\033[38;2;113;113;122m"
+	colorDim     = "\033[2m"
+)
+
+func printBanner() {
+	banner := `
+` + colorBrand + colorBold + `  ███████╗ ██████╗ ██╗   ██╗██╗██╗  ██╗
+  ╚══███╔╝██╔═══██╗██║   ██║██║██║ ██╔╝
+    ███╔╝ ██║   ██║██║   ██║██║█████╔╝ 
+   ███╔╝  ██║   ██║╚██╗ ██╔╝██║██╔═██╗ 
+  ███████╗╚██████╔╝ ╚████╔╝ ██║██║  ██╗
+  ╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝  ╚═╝` + colorReset + `
+
+  ` + colorPurple + colorBold + `:: Zovik Distributed Pipeline Engine ::` + colorReset + ` ` + colorDim + `(Runner v1.0.0)` + colorReset + `
+`
+	fmt.Print(banner)
+}
+
 func printUsage() {
-	fmt.Println("Zovik Runner Agent — Distributed CI/CD Pipeline Engine")
-	fmt.Println("Usage:")
+	printBanner()
+	fmt.Println(colorBold + "Usage:" + colorReset)
 	fmt.Println("  zovik-agent register --url <server_url> --token <registration_token> [--name <name>]")
 	fmt.Println("  zovik-agent run [--config config.yaml]")
 }
@@ -55,8 +82,10 @@ func runRegister(args []string) {
 
 	_ = fs.Parse(args)
 
+	printBanner()
+
 	if *tokenFlag == "" {
-		log.Fatalf("Error: --token is required. Generate one in Zovik server first.")
+		log.Fatalf(colorRed+"[✕] Error: --token is required. Generate one in Zovik Web UI first."+colorReset)
 	}
 
 	hostname, _ := os.Hostname()
@@ -78,13 +107,13 @@ func runRegister(args []string) {
 
 	resp, err := http.Post(endpoint, "application/json", bytes.NewReader(bodyBytes))
 	if err != nil {
-		log.Fatalf("Failed to connect to Zovik master: %v", err)
+		log.Fatalf(colorRed+"[✕] Failed to connect to Zovik master: %v"+colorReset, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		log.Fatalf("Registration failed (HTTP %d): %s", resp.StatusCode, string(body))
+		log.Fatalf(colorRed+"[✕] Registration failed (HTTP %d): %s"+colorReset, resp.StatusCode, string(body))
 	}
 
 	var apiResp struct {
@@ -97,7 +126,7 @@ func runRegister(args []string) {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
-		log.Fatalf("Failed to decode server response: %v", err)
+		log.Fatalf(colorRed+"[✕] Failed to decode server response: %v"+colorReset, err)
 	}
 
 	cfg := &Config{
@@ -109,14 +138,14 @@ func runRegister(args []string) {
 	}
 
 	if err := SaveConfig(*configPathFlag, cfg); err != nil {
-		log.Fatalf("Failed to save config: %v", err)
+		log.Fatalf(colorRed+"[✕] Failed to save config: %v"+colorReset, err)
 	}
 
-	fmt.Println("==================================================")
-	fmt.Printf("Runner '%s' registered successfully! (ID: %d)\n", cfg.Name, cfg.RunnerID)
-	fmt.Printf("Config saved to: %s\n", *configPathFlag)
-	fmt.Println("To start the runner, run: zovik-agent run")
-	fmt.Println("==================================================")
+	fmt.Println(colorMuted + "────────────────────────────────────────────────────────" + colorReset)
+	fmt.Printf(colorGreen+colorBold+"[✓] Runner '%s' registered successfully! (ID: %d)\n"+colorReset, cfg.Name, cfg.RunnerID)
+	fmt.Printf(colorMuted+"    Config saved to: %s\n"+colorReset, *configPathFlag)
+	fmt.Printf(colorPurple+colorBold+"    To start execution, run: "+colorReset+"zovik-agent run\n")
+	fmt.Println(colorMuted + "────────────────────────────────────────────────────────" + colorReset)
 }
 
 func runAgent(args []string) {
@@ -126,15 +155,17 @@ func runAgent(args []string) {
 
 	cfg, err := LoadConfig(*configPathFlag)
 	if err != nil {
-		log.Fatalf("Failed to load config file '%s': %v. Did you run 'zovik-agent register' first?", *configPathFlag, err)
+		printBanner()
+		log.Fatalf(colorRed+"[✕] Failed to load config file '%s': %v. Did you run 'zovik-agent register' first?"+colorReset, *configPathFlag, err)
 	}
 
-	fmt.Println("==================================================")
-	fmt.Println(" Zovik Pull-Model Runner Agent starting...")
-	fmt.Printf(" Master URL : %s\n", cfg.MasterURL)
-	fmt.Printf(" Runner ID  : %d (%s)\n", cfg.RunnerID, cfg.Name)
-	fmt.Printf(" Workspace  : %s\n", cfg.WorkspaceDir)
-	fmt.Println("==================================================")
+	printBanner()
+	fmt.Println(colorMuted + "  ────────────────────────────────────────────────────────" + colorReset)
+	fmt.Printf("  "+colorPurple+"⚡ Master URL"+colorReset+" : %s\n", cfg.MasterURL)
+	fmt.Printf("  "+colorBlue+"🤖 Runner ID "+colorReset+" : %d ("+colorBold+"%s"+colorReset+")\n", cfg.RunnerID, cfg.Name)
+	fmt.Printf("  "+colorMuted+"📂 Workspace "+colorReset+" : %s\n", cfg.WorkspaceDir)
+	fmt.Printf("  "+colorGreen+"🟢 Status    "+colorReset+" : Connected & Pulling jobs via long-poll\n")
+	fmt.Println(colorMuted + "  ────────────────────────────────────────────────────────" + colorReset)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -219,7 +250,7 @@ func startJobPoller(ctx context.Context, cfg *Config) {
 				}
 				resp.Body.Close()
 
-				log.Printf("[Worker] Received job: step '%s' (ID: %d, build: %d)", job.StepName, job.StepId, job.BuildId)
+				log.Printf(colorBlue+colorBold+"[◐] RUNNING"+colorReset+" Step '%s' (ID: %d, build: #%d)", job.StepName, job.StepId, job.BuildId)
 				processJob(ctx, cfg, &job)
 			} else {
 				resp.Body.Close()
@@ -253,10 +284,14 @@ func processJob(ctx context.Context, cfg *Config, job *JobPayload) {
 
 	exitCode, status, err := ExecuteDockerJob(ctx, job, cfg.WorkspaceDir, streamLogs)
 	if err != nil {
-		log.Printf("[Worker] Step '%s' execution error: %v", job.StepName, err)
+		log.Printf(colorRed+"[✕] Step '%s' execution error: %v"+colorReset, job.StepName, err)
 	}
 
-	log.Printf("[Worker] Step '%s' finished with exit code %d (status: %s)", job.StepName, exitCode, status)
+	if status == "SUCCESS" {
+		log.Printf(colorGreen+colorBold+"[✓] SUCCESS"+colorReset+" Step '%s' finished with exit code %d", job.StepName, exitCode)
+	} else {
+		log.Printf(colorRed+colorBold+"[✕] FAILED"+colorReset+" Step '%s' finished with exit code %d (status: %s)", job.StepName, exitCode, status)
+	}
 
 	// Report completion
 	completeEndpoint := fmt.Sprintf("%s/api/v1/runners/%d/jobs/%d/complete", cfg.MasterURL, cfg.RunnerID, job.StepId)
