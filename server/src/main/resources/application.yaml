@@ -13,9 +13,9 @@ spring:
       - builds
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rabotyagaci}
-    username: ${DB_USERNAME:rabotyagaci}
-    password: ${DB_PASSWORD:rabotyagaci}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:zovik}
+    username: ${DB_USERNAME:zovik}
+    password: ${DB_PASSWORD:zovik}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -55,7 +55,7 @@ spring:
           timeout: 5000
           writetimeout: 5000
 
-rabotyagaci:
+zovik:
   frontend:
     url: ${FRONTEND_URL:http://localhost:3001}
   notification:
@@ -64,16 +64,16 @@ rabotyagaci:
       from: ${EMAIL_NOTIFICATIONS_FROM:rabotyaga@example.com}
   runner:
     docker-host: unix:///var/run/docker.sock
-    workspace-dir: /tmp/rabotyagaci/workspaces
+    workspace-dir: /tmp/zovik/workspaces
     default-timeout: 600 
     max-concurrent-builds: 3
     container-memory-limit: 512m
     container-cpu-limit: 1.0
     network-mode: bridge
   git:
-    clone-dir: /tmp/rabotyagaci/repos
+    clone-dir: /tmp/zovik/repos
   artifacts:
-    storage-dir: /var/rabotyagaci/artifacts
+    storage-dir: /var/zovik/artifacts
     retention-days: 30
   retention:
     builds-days: 30

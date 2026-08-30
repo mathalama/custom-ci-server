@@ -29,14 +29,14 @@ dependencies {
 }
 
 application {
-    mainClass = 'dev.mathalama.rabotyagaci.agent.AgentApplication'
+    mainClass = 'dev.mathalama.zovik.agent.AgentApplication'
 }
 
 jar {
     archiveFileName = 'agent.jar'
     manifest {
         attributes(
-            'Main-Class': 'dev.mathalama.rabotyagaci.agent.AgentApplication'
+            'Main-Class': 'dev.mathalama.zovik.agent.AgentApplication'
         )
     }
     from {

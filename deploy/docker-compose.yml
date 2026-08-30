@@ -5,15 +5,15 @@ services:
     image: postgres:16-alpine
     container_name: zovik-db
     environment:
-      POSTGRES_DB: rabotyagaci
-      POSTGRES_USER: rabotyagaci
-      POSTGRES_PASSWORD: rabotyagaci
+      POSTGRES_DB: zovik
+      POSTGRES_USER: zovik
+      POSTGRES_PASSWORD: zovik
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rabotyagaci -d rabotyagaci"]
+      test: ["CMD-SHELL", "pg_isready -U zovik -d zovik"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -33,14 +33,14 @@ services:
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_NAME=rabotyagaci
-      - DB_USERNAME=rabotyagaci
-      - DB_PASSWORD=rabotyagaci
+      - DB_NAME=zovik
+      - DB_USERNAME=zovik
+      - DB_PASSWORD=zovik
       - RABOTYAGACI_RUNNER_DOCKER_HOST=unix:///var/run/docker.sock
-      - RABOTYAGACI_RUNNER_WORKSPACE_DIR=/tmp/rabotyagaci/workspaces
+      - RABOTYAGACI_RUNNER_WORKSPACE_DIR=/tmp/zovik/workspaces
       - RABOTYAGACI_RUNNER_VOLUME_NAME=zovik_app-data
-      - RABOTYAGACI_GIT_CLONE_DIR=/tmp/rabotyagaci/repos
-      - RABOTYAGACI_ARTIFACTS_STORAGE_DIR=/var/rabotyagaci/artifacts
+      - RABOTYAGACI_GIT_CLONE_DIR=/tmp/zovik/repos
+      - RABOTYAGACI_ARTIFACTS_STORAGE_DIR=/var/zovik/artifacts
       - SMTP_HOST=${MAIL_HOST:-}
       - SMTP_PORT=${MAIL_PORT:-587}
       - SMTP_USERNAME=${MAIL_USERNAME:-}
@@ -54,7 +54,7 @@ services:
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:+UseG1GC -XX:MaxMetaspaceSize=128m
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - app-data:/tmp/rabotyagaci
+      - app-data:/tmp/zovik
     depends_on:
       postgres:
         condition: service_healthy
